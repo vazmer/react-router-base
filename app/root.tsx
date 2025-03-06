@@ -13,10 +13,10 @@ import {
 import { useChangeLanguage } from 'remix-i18next/react'
 import { HoneypotProvider } from 'remix-utils/honeypot/react'
 import { type Route } from './+types/root.ts'
+import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { fallbackLng } from '@/config/i18n.ts'
 
 import './tailwind.css'
-import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { useOptionalTheme } from '@/routes/resources+/theme-switch.tsx'
 import { getUserId, logout } from '@/utils/auth.server.ts'
 import { getHints } from '@/utils/client-hints.tsx'

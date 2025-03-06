@@ -19,7 +19,7 @@ import { useUser } from '@/utils/user.ts'
 
 function UserDropdownItem() {
 	const user = useUser()
-	const [firstName, lastName] = user.name.split(' ')
+	const [firstName, lastName] = user.name?.split(' ') || []
 
 	return (
 		<>

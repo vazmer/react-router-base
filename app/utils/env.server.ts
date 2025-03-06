@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 const schema = z.object({
 	NODE_ENV: z.enum(['production', 'development'] as const),
-	DB_FILE_NAME: z.string(),
+	DATABASE_URL: z.string(),
 	SESSION_SECRET: z.string(),
 	INTERNAL_COMMAND_TOKEN: z.string(),
 	ALLOW_INDEXING: z.enum(['true', 'false']).optional(),

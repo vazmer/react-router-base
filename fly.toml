@@ -17,6 +17,9 @@ destination = "/data"
 dockerfile = "/other/Dockerfile"
 ignorefile = "/other/Dockerfile.dockerignore"
 
+[deploy]
+release_command = 'npx prisma migrate deploy'
+
 [[services]]
 internal_port = 8080
 processes = [ "app" ]
