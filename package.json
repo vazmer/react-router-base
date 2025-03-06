@@ -24,8 +24,7 @@
     "/node_modules",
     "/build",
     "/public/build",
-    "/server-build",
-    "/postgres-data"
+    "/server-build"
   ],
   "dependencies": {
     "@conform-to/react": "^1.2.2",
