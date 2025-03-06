@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Start containers
-        run: docker-compose -f "./other/docker-compose.yml" up -d --build
+        run: docker compose -f "./other/docker-compose.yml" up -d --build
 
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
