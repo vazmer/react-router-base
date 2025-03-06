@@ -25,10 +25,10 @@ const ALLOW_INDEXING = process.env.ALLOW_INDEXING !== 'false'
 const viteDevServer = IS_PROD
 	? undefined
 	: await import('vite').then((vite) =>
-		vite.createServer({
-			server: { middlewareMode: true },
-		}),
-	)
+			vite.createServer({
+				server: { middlewareMode: true },
+			}),
+		)
 
 const app = express()
 
@@ -91,7 +91,7 @@ if (viteDevServer) {
 app.get(['/img/*', '/favicons/*'], (_req, res) => {
 	// if we made it past the express.static for these, then we're missing something.
 	// So we'll just send a 404 and won't bother calling other middleware.
-	return res.status(404).send('Not found')
+	res.status(404).send('Not found')
 })
 
 morgan.token('url', (req) => {
@@ -181,7 +181,7 @@ async function getBuild() {
 		const build = viteDevServer
 			? await viteDevServer.ssrLoadModule('virtual:react-router/server-build')
 			: // @ts-expect-error - the file might not exist yet but it will
-			await import('../build/server/index.js')
+				await import('../build/server/index.js')
 
 		return { build: build as unknown as ServerBuild, error: null }
 	} catch (error) {
