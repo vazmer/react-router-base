@@ -1,6 +1,6 @@
 // learn more: https://fly.io/docs/reference/configuration/#services-http_checks
-import { prisma } from '@/utils/db.server.ts'
 import { type Route } from './+types/healthcheck.ts'
+import { prisma } from '@/utils/db.server.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const host =
