@@ -5,6 +5,6 @@ export default [
 	...defaultConfig,
 	// add custom config objects here:
 	{
-		ignores: ['.react-router/*', 'postgres-data/**/*'],
+		ignores: ['.react-router/*', '/postgres-data/'],
 	},
 ]
