@@ -7,7 +7,7 @@ FROM node:22-bookworm-slim as base
 ENV NODE_ENV production
 
 # Install openssl for Prisma
-RUN apt-get update && apt-get install -y fuse3 openssl ca-certificates
+RUN apt-get update && apt-get install -y openssl
 
 # Install all node_modules, including dev dependencies
 FROM base as deps
@@ -44,17 +44,17 @@ ADD prisma .
 RUN npx prisma generate
 
 ADD . .
+RUN npm run build
 
-# Mount the secret and set it as an environment variable and run the build
-RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
-  export SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) && \
-  npm run build
+## Mount the secret and set it as an environment variable and run the build
+#RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
+#  export SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) && \
+#  npm run build
 
 # Finally, build the production image with minimal footprint
 FROM base
 
 ENV FLY="true"
-ENV DATABASE_URL="$DATABASE_URL"
 ENV INTERNAL_PORT="8080"
 ENV PORT="8081"
 ENV NODE_ENV="production"
@@ -74,5 +74,7 @@ COPY --from=build /myapp/server-build /myapp/server-build
 COPY --from=build /myapp/build /myapp/build
 COPY --from=build /myapp/package.json /myapp/package.json
 COPY --from=build /myapp/prisma /myapp/prisma
+
+ADD . .
 
 CMD ["npm", "start"]
