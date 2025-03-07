@@ -15,6 +15,9 @@ export default defineConfig({
 		},
 		sourcemap: true,
 	},
+	ssr: {
+		noExternal: ['remix-i18next'],
+	},
 	server: {
 		watch: {
 			ignored: ['**/playwright-report/**'],

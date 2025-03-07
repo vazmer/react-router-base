@@ -1,7 +1,6 @@
 import { getFormProps, useForm } from '@conform-to/react'
 import { type Prisma } from '@prisma/client'
 import { formatDistanceToNow } from 'date-fns'
-import { t } from 'i18next'
 import { SearchIcon } from 'lucide-react'
 import React, { useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -32,7 +31,7 @@ import {
 } from '@/components/ui/table.tsx'
 import { type BreadcrumbHandle } from '@/routes/admin+'
 import { prisma } from '@/utils/db.server.ts'
-import { useDateFnsLocale } from '@/utils/i18next.ts'
+import { useDateFnsLocale } from '@/utils/i18n.ts'
 import { useDebounce, useIsPending } from '@/utils/misc.tsx'
 
 export const loader = async ({ request }: Route.LoaderArgs) => {
@@ -117,7 +116,7 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 }
 
 export const handle: BreadcrumbHandle = {
-	breadcrumb: () => t('breadcrumbs.Users'),
+	breadcrumb: 'breadcrumbs.Users',
 }
 
 export default function Users({ loaderData }: Route.ComponentProps) {

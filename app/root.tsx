@@ -1,3 +1,4 @@
+import { OpenImgContextProvider } from 'openimg/react'
 import React from 'react'
 import {
 	data,
@@ -14,17 +15,17 @@ import { useChangeLanguage } from 'remix-i18next/react'
 import { HoneypotProvider } from 'remix-utils/honeypot/react'
 import { type Route } from './+types/root.ts'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
-import { fallbackLng } from '@/config/i18n.ts'
 
 import './tailwind.css'
 import { useOptionalTheme } from '@/routes/resources+/theme-switch.tsx'
 import { getUserId, logout } from '@/utils/auth.server.ts'
-import { getHints } from '@/utils/client-hints.tsx'
+import { ClientHintCheck, getHints } from '@/utils/client-hints.tsx'
 import { prisma } from '@/utils/db.server.ts'
 import { getEnv } from '@/utils/env.server.ts'
 import { honeypot } from '@/utils/honeypot.server.ts'
+import { i18n } from '@/utils/i18n'
 import { i18next } from '@/utils/i18next.server.ts'
-import { combineHeaders } from '@/utils/misc.tsx'
+import { combineHeaders, getImgSrc } from '@/utils/misc.tsx'
 import { useNonce } from '@/utils/nonce-provider.ts'
 import { getTheme } from '@/utils/theme.server.ts'
 import { makeTimings, time } from '@/utils/timing.server.ts'
@@ -123,10 +124,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 	return (
 		<html
-			lang={data.requestInfo.locale || fallbackLng}
+			lang={data.requestInfo.locale || i18n.fallbackLng}
 			className={`${theme} light h-full overflow-x-hidden`}
 		>
 			<head>
+				<ClientHintCheck nonce={nonce} />
 				<Meta />
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -153,7 +155,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App({ loaderData }: Route.ComponentProps) {
 	return (
 		<HoneypotProvider {...loaderData.honeyProps}>
-			<Outlet />
+			<OpenImgContextProvider
+				optimizerEndpoint="/resources/images"
+				getSrc={getImgSrc}
+			>
+				<Outlet />
+			</OpenImgContextProvider>
 		</HoneypotProvider>
 	)
 }

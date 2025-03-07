@@ -1,12 +1,9 @@
-import { type JSX, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { redirect } from 'react-router'
 import { z } from 'zod'
 
 export const BreadcrumbHandle = z.object({
-	breadcrumb: z
-		.function()
-		.args(z.unknown())
-		.returns(z.custom<JSX.Element | ReactNode | string>()),
+	breadcrumb: z.custom<ReactNode>(),
 })
 export type BreadcrumbHandle = z.infer<typeof BreadcrumbHandle>
 

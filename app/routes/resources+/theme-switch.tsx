@@ -1,6 +1,7 @@
 import { useForm, getFormProps } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
+import { AccessibleIcon } from '@radix-ui/react-accessible-icon'
 import { Laptop, Moon, Sun } from 'lucide-react'
 import React from 'react'
 import { data, redirect, useFetcher, useFetchers } from 'react-router'
@@ -57,19 +58,19 @@ export function ThemeSwitch({
 		mode === 'system' ? 'light' : mode === 'light' ? 'dark' : 'system'
 	const modeLabel = {
 		light: (
-			<Sun>
-				<span className="sr-only">Light</span>
-			</Sun>
+			<AccessibleIcon label="Light">
+				<Sun />
+			</AccessibleIcon>
 		),
 		dark: (
-			<Moon>
-				<span className="sr-only">Dark</span>
-			</Moon>
+			<AccessibleIcon label="Dark">
+				<Moon />
+			</AccessibleIcon>
 		),
 		system: (
-			<Laptop>
-				<span className="sr-only">System</span>
-			</Laptop>
+			<AccessibleIcon label="System">
+				<Laptop />
+			</AccessibleIcon>
 		),
 	}
 

@@ -1,4 +1,5 @@
 import React, { Fragment } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useMatches } from 'react-router'
 import {
 	Breadcrumb,
@@ -12,6 +13,7 @@ import { BreadcrumbHandleMatch } from '@/routes/admin+'
 
 function Breadcrumbs() {
 	const matches = useMatches()
+	const { t } = useTranslation()
 
 	const breadcrumbs = matches
 		.map((m) => {
@@ -20,7 +22,6 @@ function Breadcrumbs() {
 			return {
 				m,
 				breadcrumb: result.data.handle.breadcrumb,
-				data: result.data,
 			}
 		})
 		.filter(Boolean)
@@ -32,12 +33,12 @@ function Breadcrumbs() {
 			<BreadcrumbList>
 				{breadcrumbs
 					.slice(0, breadcrumbs.length - 1)
-					.map(({ m, breadcrumb, data }) => (
+					.map(({ m, breadcrumb }) => (
 						<Fragment key={m.id}>
 							<BreadcrumbItem className="hidden md:block">
 								<BreadcrumbLink asChild>
 									<Link className="flex items-center" to={m.pathname}>
-										{breadcrumb(data)}
+										{t(breadcrumb)}
 									</Link>
 								</BreadcrumbLink>
 							</BreadcrumbItem>
@@ -47,7 +48,7 @@ function Breadcrumbs() {
 				{lastBreadcrumb && (
 					<BreadcrumbItem>
 						<BreadcrumbPage className="flex items-center">
-							{lastBreadcrumb.breadcrumb(lastBreadcrumb.data)}
+							{t(lastBreadcrumb.breadcrumb)}
 						</BreadcrumbPage>
 					</BreadcrumbItem>
 				)}

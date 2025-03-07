@@ -1,4 +1,3 @@
-import { t } from 'i18next'
 import React from 'react'
 import { Outlet } from 'react-router'
 import { type Route } from './+types/_layout'
@@ -22,7 +21,7 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 }
 
 export const handle: BreadcrumbHandle = {
-	breadcrumb: () => t('breadcrumbs.Home'),
+	breadcrumb: 'breadcrumbs.Home',
 }
 
 export default function App() {
