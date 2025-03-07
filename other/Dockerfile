@@ -77,6 +77,4 @@ COPY --from=build /myapp/prisma /myapp/prisma
 
 ADD . .
 
-RUN npx prisma migrate deploy && npx prisma db seed
-
 CMD ["npm", "start"]
