@@ -41,7 +41,7 @@ WORKDIR /myapp
 COPY --from=deps /myapp/node_modules /myapp/node_modules
 
 ADD prisma .
-RUN npx prisma generate && npx prisma migrate deploy && npx prisma db seed
+RUN npx prisma generate
 
 ADD . .
 RUN npm run build
@@ -76,5 +76,7 @@ COPY --from=build /myapp/package.json /myapp/package.json
 COPY --from=build /myapp/prisma /myapp/prisma
 
 ADD . .
+
+RUN npx prisma migrate deploy && npx prisma db seed
 
 CMD ["npm", "start"]
