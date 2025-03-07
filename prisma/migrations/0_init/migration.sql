@@ -187,3 +187,35 @@ ALTER TABLE "_RoleToUser" ADD CONSTRAINT "_RoleToUser_A_fkey" FOREIGN KEY ("A") 
 -- AddForeignKey
 ALTER TABLE "_RoleToUser" ADD CONSTRAINT "_RoleToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+
+INSERT INTO public."User" (id, email, username, name, "createdAt", "updatedAt") VALUES ('cm7yvjrsz000artfid5bohs96', 'vazmer@gmail.com', 'admin', 'Bojan Vazmer', '2025-03-07 14:32:07.044', '2025-03-07 14:32:07.044');
+
+INSERT INTO public."Password" (hash, "userId") VALUES ('$2b$10$2k7sRYxFuxDel0Hnt3tO/.I8pEo9II74xDkdKlkCgYGmy1qvu3coS', 'cm7yvjrsz000artfid5bohs96');
+
+INSERT INTO public."Permission" (id, action, entity, access, description, "createdAt", "updatedAt") VALUES ('cm7yvjrpo0000rtfiguzgjgj3', 'create', 'user', 'own', '', '2025-03-07 14:32:06.924', '2025-03-07 14:32:06.924');
+INSERT INTO public."Permission" (id, action, entity, access, description, "createdAt", "updatedAt") VALUES ('cm7yvjrpp0001rtfi5qwiqjf5', 'create', 'user', 'any', '', '2025-03-07 14:32:06.924', '2025-03-07 14:32:06.924');
+INSERT INTO public."Permission" (id, action, entity, access, description, "createdAt", "updatedAt") VALUES ('cm7yvjrpp0002rtfihslisd9n', 'read', 'user', 'own', '', '2025-03-07 14:32:06.924', '2025-03-07 14:32:06.924');
+INSERT INTO public."Permission" (id, action, entity, access, description, "createdAt", "updatedAt") VALUES ('cm7yvjrpp0003rtfi96tfc8st', 'read', 'user', 'any', '', '2025-03-07 14:32:06.924', '2025-03-07 14:32:06.924');
+INSERT INTO public."Permission" (id, action, entity, access, description, "createdAt", "updatedAt") VALUES ('cm7yvjrpp0004rtfinu3tbr80', 'update', 'user', 'own', '', '2025-03-07 14:32:06.924', '2025-03-07 14:32:06.924');
+INSERT INTO public."Permission" (id, action, entity, access, description, "createdAt", "updatedAt") VALUES ('cm7yvjrpp0005rtfi2n2bhe4d', 'update', 'user', 'any', '', '2025-03-07 14:32:06.924', '2025-03-07 14:32:06.924');
+INSERT INTO public."Permission" (id, action, entity, access, description, "createdAt", "updatedAt") VALUES ('cm7yvjrpp0006rtfijgd8x87d', 'delete', 'user', 'own', '', '2025-03-07 14:32:06.924', '2025-03-07 14:32:06.924');
+INSERT INTO public."Permission" (id, action, entity, access, description, "createdAt", "updatedAt") VALUES ('cm7yvjrpp0007rtfilkz74il3', 'delete', 'user', 'any', '', '2025-03-07 14:32:06.924', '2025-03-07 14:32:06.924');
+
+INSERT INTO public."Role" (id, name, description, "createdAt", "updatedAt") VALUES ('cm7yvjrq70008rtfi8y60fx4p', 'admin', '', '2025-03-07 14:32:06.944', '2025-03-07 14:32:06.944');
+INSERT INTO public."Role" (id, name, description, "createdAt", "updatedAt") VALUES ('cm7yvjrqf0009rtfipe8q8xos', 'user', '', '2025-03-07 14:32:06.951', '2025-03-07 14:32:06.951');
+
+INSERT INTO public."Session" (id, "expirationDate", "createdAt", "updatedAt", "userId") VALUES ('cm7yvjvlr0005rtqe51oqylql', '2025-04-06 14:32:11.966', '2025-03-07 14:32:11.967', '2025-03-07 14:32:11.967', 'cm7yvjrsz000artfid5bohs96');
+
+INSERT INTO public."UserImage" (id, "altText", "objectKey", "createdAt", "updatedAt", "userId") VALUES ('cm7yvjrtb000crtfi10n7vutq', NULL, 'user/6.jpg', '2025-03-07 14:32:07.056', '2025-03-07 14:32:07.056', 'cm7yvjrsz000artfid5bohs96');
+
+INSERT INTO public."_PermissionToRole" ("A", "B") VALUES ('cm7yvjrpp0001rtfi5qwiqjf5', 'cm7yvjrq70008rtfi8y60fx4p');
+INSERT INTO public."_PermissionToRole" ("A", "B") VALUES ('cm7yvjrpp0003rtfi96tfc8st', 'cm7yvjrq70008rtfi8y60fx4p');
+INSERT INTO public."_PermissionToRole" ("A", "B") VALUES ('cm7yvjrpp0005rtfi2n2bhe4d', 'cm7yvjrq70008rtfi8y60fx4p');
+INSERT INTO public."_PermissionToRole" ("A", "B") VALUES ('cm7yvjrpp0007rtfilkz74il3', 'cm7yvjrq70008rtfi8y60fx4p');
+INSERT INTO public."_PermissionToRole" ("A", "B") VALUES ('cm7yvjrpo0000rtfiguzgjgj3', 'cm7yvjrqf0009rtfipe8q8xos');
+INSERT INTO public."_PermissionToRole" ("A", "B") VALUES ('cm7yvjrpp0002rtfihslisd9n', 'cm7yvjrqf0009rtfipe8q8xos');
+INSERT INTO public."_PermissionToRole" ("A", "B") VALUES ('cm7yvjrpp0004rtfinu3tbr80', 'cm7yvjrqf0009rtfipe8q8xos');
+INSERT INTO public."_PermissionToRole" ("A", "B") VALUES ('cm7yvjrpp0006rtfijgd8x87d', 'cm7yvjrqf0009rtfipe8q8xos');
+
+INSERT INTO public."_RoleToUser" ("A", "B") VALUES ('cm7yvjrq70008rtfi8y60fx4p', 'cm7yvjrsz000artfid5bohs96');
+INSERT INTO public."_RoleToUser" ("A", "B") VALUES ('cm7yvjrqf0009rtfipe8q8xos', 'cm7yvjrsz000artfid5bohs96');
