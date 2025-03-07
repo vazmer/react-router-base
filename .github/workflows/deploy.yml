@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [lint, typecheck]
     # only build/deploy branches on pushes
-    if: ${{ github.event_name == 'push' }}
+#    if: ${{ github.event_name == 'push' }}
 
     steps:
       - name: ⬇️ Checkout repo
