@@ -1,7 +1,7 @@
-import { createPassword, createUser, getUserImages } from '@tests/db.utils'
-import { prisma } from '@/utils/db.server.ts'
 import { Prisma } from '.prisma/client'
+import { createPassword, createUser, getUserImages } from '@tests/db.utils'
 import PermissionActionEntityAccessCompoundUniqueInput = Prisma.PermissionActionEntityAccessCompoundUniqueInput
+import { prisma } from '@/utils/db.server.ts'
 
 async function seed() {
 	console.log('🌱 Seeding...')
@@ -99,7 +99,7 @@ async function seed() {
 			await prisma.userImage.upsert({
 				where: {
 					userId: user.id,
-					objectKey: userImage.objectKey
+					objectKey: userImage.objectKey,
 				},
 				update: {},
 				create: {
@@ -133,7 +133,7 @@ async function seed() {
 		await prisma.userImage.upsert({
 			where: {
 				userId: adminUser.id,
-				objectKey: adminUserImage.objectKey
+				objectKey: adminUserImage.objectKey,
 			},
 			update: {},
 			create: {
