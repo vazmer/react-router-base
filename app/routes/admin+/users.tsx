@@ -148,7 +148,7 @@ export default function Users({ loaderData }: Route.ComponentProps) {
 	const localeDateFnsNs = useDateFnsLocale()
 
 	return (
-		<div className="space-y-4">
+		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
 				<div className="flex flex-1 items-center space-x-2">
 					<Form
