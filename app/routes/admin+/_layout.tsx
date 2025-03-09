@@ -21,7 +21,7 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 }
 
 export const handle: BreadcrumbHandle = {
-	breadcrumb: 'breadcrumbs.Home',
+	breadcrumb: ({ t }) => t('breadcrumbs.Home'),
 }
 
 export default function App() {

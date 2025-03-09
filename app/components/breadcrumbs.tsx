@@ -38,7 +38,7 @@ function Breadcrumbs() {
 							<BreadcrumbItem className="hidden md:block">
 								<BreadcrumbLink asChild>
 									<Link className="flex items-center" to={m.pathname}>
-										{t(breadcrumb)}
+										{breadcrumb({ match: m, t })}
 									</Link>
 								</BreadcrumbLink>
 							</BreadcrumbItem>
@@ -48,7 +48,7 @@ function Breadcrumbs() {
 				{lastBreadcrumb && (
 					<BreadcrumbItem>
 						<BreadcrumbPage className="flex items-center">
-							{t(lastBreadcrumb.breadcrumb)}
+							{lastBreadcrumb.breadcrumb({ match: lastBreadcrumb.m, t })}
 						</BreadcrumbPage>
 					</BreadcrumbItem>
 				)}

@@ -1,10 +1,12 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Loader2 } from 'lucide-react'
+import React from 'react'
 import { data, Form, useSearchParams } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { type Route } from './+types/login.ts'
+import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import {
 	Card,
@@ -81,7 +83,7 @@ export async function action({ request }: Route.ActionArgs) {
 	})
 }
 
-export default function LoginPage({ actionData }: Route.ComponentProps) {
+export default function Login({ actionData }: Route.ComponentProps) {
 	const isPending = useIsPending()
 	const [searchParams] = useSearchParams()
 	const redirectTo = searchParams.get('redirectTo')
@@ -166,5 +168,5 @@ export const meta: Route.MetaFunction = () => {
 }
 
 export function ErrorBoundary() {
-	return <></>
+	return <GeneralErrorBoundary />
 }

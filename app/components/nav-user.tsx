@@ -15,6 +15,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from '@/components/ui/sidebar.tsx'
+import { getUserImgSrc } from '@/utils/misc.tsx'
 import { useUser } from '@/utils/user.ts'
 
 function UserDropdownItem() {
@@ -25,7 +26,7 @@ function UserDropdownItem() {
 		<>
 			<Avatar className="h-8 w-8 rounded-lg">
 				<AvatarImage
-					src={user.image?.objectKey}
+					src={getUserImgSrc(user.image?.objectKey)}
 					alt={user.name || user.username}
 				/>
 				<AvatarFallback className="rounded-lg">{`${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`}</AvatarFallback>

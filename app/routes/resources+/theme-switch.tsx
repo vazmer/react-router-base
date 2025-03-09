@@ -8,6 +8,8 @@ import { data, redirect, useFetcher, useFetchers } from 'react-router'
 import { ServerOnly } from 'remix-utils/server-only'
 import { z } from 'zod'
 import { type Route } from './+types/theme-switch.ts'
+import { Button } from '@/components/ui/button.tsx'
+import { cn } from '@/lib/utils.ts'
 import { useHints, useOptionalHints } from '@/utils/client-hints.tsx'
 import { useOptionalRequestInfo, useRequestInfo } from '@/utils/request-info.ts'
 import { type Theme, setTheme } from '@/utils/theme.server.ts'
@@ -88,12 +90,14 @@ export function ThemeSwitch({
 			</ServerOnly>
 			<input type="hidden" name="theme" value={nextMode} />
 			<div className="flex gap-2">
-				<button
+				<Button
 					type="submit"
-					className="flex size-5 cursor-pointer items-center justify-center"
+					variant="ghost"
+					size="icon"
+					className={cn('size-8', className)}
 				>
 					{modeLabel[mode]}
-				</button>
+				</Button>
 			</div>
 		</fetcher.Form>
 	)

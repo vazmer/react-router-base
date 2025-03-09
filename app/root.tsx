@@ -17,7 +17,9 @@ import { type Route } from './+types/root.ts'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 
 import './tailwind.css'
-import { useOptionalTheme } from '@/routes/resources+/theme-switch.tsx'
+import { useToast } from '@/components/toaster.tsx'
+import { Toaster } from '@/components/ui/sonner.tsx'
+import { useTheme } from '@/routes/resources+/theme-switch.tsx'
 import { getUserId, logout } from '@/utils/auth.server.ts'
 import { ClientHintCheck, getHints } from '@/utils/client-hints.tsx'
 import { prisma } from '@/utils/db.server.ts'
@@ -29,6 +31,7 @@ import { combineHeaders, getImgSrc } from '@/utils/misc.tsx'
 import { useNonce } from '@/utils/nonce-provider.ts'
 import { getTheme } from '@/utils/theme.server.ts'
 import { makeTimings, time } from '@/utils/timing.server.ts'
+import { getToast } from '@/utils/toast.server.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const timings = makeTimings('root loader')
@@ -69,6 +72,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 		await logout({ request, redirectTo: '/' })
 	}
 
+	const { toast, headers: toastHeaders } = await getToast(request)
 	const honeyProps = await honeypot.getInputProps()
 	const locale = await i18next.getLocale(request)
 
@@ -83,11 +87,17 @@ export async function loader({ request }: Route.LoaderArgs) {
 					theme: getTheme(request),
 				},
 			},
+			toast,
 			ENV: getEnv(),
 			honeyProps,
 		},
 		{
-			headers: combineHeaders({ 'Server-Timing': timings.toString() }),
+			headers: combineHeaders(
+				{
+					'Server-Timing': timings.toString(),
+				},
+				toastHeaders,
+			),
 		},
 	)
 }
@@ -120,7 +130,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	const nonce = useNonce()
 	const { locale } = data.requestInfo
 	useChangeLanguage(locale)
-	const theme = useOptionalTheme()
+	const theme = useTheme()
+	useToast(data.toast)
 
 	return (
 		<html
@@ -147,6 +158,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				/>
 				<ScrollRestoration nonce={nonce} />
 				<Scripts nonce={nonce} />
+				<Toaster closeButton position="top-center" theme={theme} />
 			</body>
 		</html>
 	)

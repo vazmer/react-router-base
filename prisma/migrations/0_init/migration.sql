@@ -206,7 +206,7 @@ INSERT INTO public."Role" (id, name, description, "createdAt", "updatedAt") VALU
 
 INSERT INTO public."Session" (id, "expirationDate", "createdAt", "updatedAt", "userId") VALUES ('cm7yvjvlr0005rtqe51oqylql', '2025-04-06 14:32:11.966', '2025-03-07 14:32:11.967', '2025-03-07 14:32:11.967', 'cm7yvjrsz000artfid5bohs96');
 
-INSERT INTO public."UserImage" (id, "altText", "objectKey", "createdAt", "updatedAt", "userId") VALUES ('cm7yvjrtb000crtfi10n7vutq', NULL, 'user/6.jpg', '2025-03-07 14:32:07.056', '2025-03-07 14:32:07.056', 'cm7yvjrsz000artfid5bohs96');
+INSERT INTO public."UserImage" (id, "altText", "objectKey", "createdAt", "updatedAt", "userId") VALUES ('cm7yvjrtb000crtfi10n7vutq', NULL, 'user/1.jpg', '2025-03-07 14:32:07.056', '2025-03-07 14:32:07.056', 'cm7yvjrsz000artfid5bohs96');
 
 INSERT INTO public."_PermissionToRole" ("A", "B") VALUES ('cm7yvjrpp0001rtfi5qwiqjf5', 'cm7yvjrq70008rtfi8y60fx4p');
 INSERT INTO public."_PermissionToRole" ("A", "B") VALUES ('cm7yvjrpp0003rtfi96tfc8st', 'cm7yvjrq70008rtfi8y60fx4p');
