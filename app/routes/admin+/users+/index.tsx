@@ -1,12 +1,17 @@
 import { getFormProps, useForm } from '@conform-to/react'
 import { type Prisma } from '@prisma/client'
 import { formatDistanceToNow } from 'date-fns'
-import { t } from 'i18next'
 import { SearchIcon } from 'lucide-react'
 import React, { useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Form, useLocation, useSearchParams, useSubmit } from 'react-router'
-import { type Route } from './+types/users'
+import {
+	Form,
+	Link,
+	useLocation,
+	useSearchParams,
+	useSubmit,
+} from 'react-router'
+import { type Route } from './+types/index'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { PaginationBar } from '@/components/pagination-bar.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
@@ -30,9 +35,8 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table.tsx'
-import { type BreadcrumbHandle } from '@/routes/admin+'
 import { prisma } from '@/utils/db.server.ts'
-import { useDateFnsLocale } from '@/utils/i18next.ts'
+import { useDateFnsLocale } from '@/utils/i18n.ts'
 import { useDebounce, useIsPending } from '@/utils/misc.tsx'
 
 export const loader = async ({ request }: Route.LoaderArgs) => {
@@ -90,7 +94,14 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 		await prisma.$transaction([
 			prisma.role.findMany(),
 			prisma.user.findMany({
-				include: { sessions: true, roles: { orderBy: { id: 'asc' } } },
+				include: {
+					sessions: {
+						where: {
+							expirationDate: { gt: new Date() },
+						},
+					},
+					roles: { orderBy: { id: 'asc' } },
+				},
 				where: whereInput,
 				take,
 				skip,
@@ -114,10 +125,6 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 			total: totalUsers,
 		},
 	} as const
-}
-
-export const handle: BreadcrumbHandle = {
-	breadcrumb: () => t('breadcrumbs.Users'),
 }
 
 export default function Users({ loaderData }: Route.ComponentProps) {
@@ -149,7 +156,7 @@ export default function Users({ loaderData }: Route.ComponentProps) {
 	const localeDateFnsNs = useDateFnsLocale()
 
 	return (
-		<div className="space-y-4">
+		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
 				<div className="flex flex-1 items-center space-x-2">
 					<Form
@@ -260,7 +267,9 @@ export default function Users({ loaderData }: Route.ComponentProps) {
 						<TableRow>
 							<TableHead>{t('users.name')}</TableHead>
 							<TableHead className="w-[200px]">{t('users.roles')}</TableHead>
-							<TableHead className="w-[100px]">{t('users.sessions')}</TableHead>
+							<TableHead className="w-[100px] text-center">
+								{t('users.sessions')}
+							</TableHead>
 							<TableHead className="w-[150px]">
 								{t('users.createdAt')}
 							</TableHead>
@@ -274,7 +283,11 @@ export default function Users({ loaderData }: Route.ComponentProps) {
 							<TableRow key={user.id}>
 								<TableCell>
 									<div className="flex flex-col space-y-0.5">
-										<div className="font-medium">{user.name}</div>
+										<div className="font-medium">
+											<Link to={`/admin/users/${user.username}`}>
+												{user.name}
+											</Link>
+										</div>
 										<div className="dark:text-zink-200 text-xs text-slate-500">
 											{user.email}
 										</div>
@@ -289,7 +302,9 @@ export default function Users({ loaderData }: Route.ComponentProps) {
 										))}
 									</div>
 								</TableCell>
-								<TableCell>{user.sessions.length}</TableCell>
+								<TableCell className="text-center">
+									{user.sessions.length}
+								</TableCell>
 								<TableCell>
 									{formatDistanceToNow(user.createdAt, {
 										locale: localeDateFnsNs,

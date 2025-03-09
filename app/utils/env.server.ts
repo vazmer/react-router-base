@@ -5,7 +5,20 @@ const schema = z.object({
 	DATABASE_URL: z.string(),
 	SESSION_SECRET: z.string(),
 	INTERNAL_COMMAND_TOKEN: z.string(),
+	HONEYPOT_SECRET: z.string(),
+	// If you plan on using Sentry, remove the .optional()
+	SENTRY_DSN: z.string().optional(),
+	// If you plan to use Resend, remove the .optional()
+	RESEND_API_KEY: z.string().optional(),
+
 	ALLOW_INDEXING: z.enum(['true', 'false']).optional(),
+
+	// Tigris Object Storage Configuration
+	AWS_ACCESS_KEY_ID: z.string(),
+	AWS_SECRET_ACCESS_KEY: z.string(),
+	AWS_REGION: z.string(),
+	AWS_ENDPOINT_URL_S3: z.string().url(),
+	BUCKET_NAME: z.string(),
 })
 
 declare global {

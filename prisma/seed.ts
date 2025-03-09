@@ -1,34 +1,33 @@
-import { createPassword, createUser, getUserImages } from '@tests/db.utils'
+import { type Prisma } from '@prisma/client'
+import { createPassword, getUserImages } from '@tests/db.utils'
 import { prisma } from '@/utils/db.server.ts'
-import { Prisma } from '.prisma/client'
-import PermissionActionEntityAccessCompoundUniqueInput = Prisma.PermissionActionEntityAccessCompoundUniqueInput
 
 async function seed() {
 	console.log('🌱 Seeding...')
 	console.time(`🌱 Database has been seeded`)
 
-	console.time('🔑 Created permissions...')
-	const entities: PermissionActionEntityAccessCompoundUniqueInput['entity'][] =
+	console.time('🔑 Upserted permissions...')
+	const entities: Prisma.PermissionActionEntityAccessCompoundUniqueInput['entity'][] =
 		['user']
-	const actions: PermissionActionEntityAccessCompoundUniqueInput['action'][] = [
+	const actions: Prisma.PermissionActionEntityAccessCompoundUniqueInput['action'][] = [
 		'create',
 		'read',
 		'update',
 		'delete',
 	]
-	const accesses: PermissionActionEntityAccessCompoundUniqueInput['access'][] =
+	const accesses: Prisma.PermissionActionEntityAccessCompoundUniqueInput['access'][] =
 		['own', 'any'] as const
 
-	let permissionsToCreate = []
+	let permissionsToUpsert = []
 	for (const entity of entities) {
 		for (const action of actions) {
 			for (const access of accesses) {
-				permissionsToCreate.push({ entity, action, access })
+				permissionsToUpsert.push({ entity, action, access })
 			}
 		}
 	}
 	await prisma.$transaction(
-		permissionsToCreate.map((permission) =>
+		permissionsToUpsert.map((permission) =>
 			prisma.permission.upsert({
 				where: {
 					action_entity_access: permission,
@@ -39,9 +38,9 @@ async function seed() {
 		),
 	)
 
-	console.timeEnd('🔑 Created permissions...')
+	console.timeEnd('🔑 Upserted permissions...')
 
-	console.time('👑 Created roles...')
+	console.time('👑 Upserted roles...')
 	await prisma.role.upsert({
 		where: {
 			name: 'admin',
@@ -72,46 +71,46 @@ async function seed() {
 			},
 		},
 	})
-	console.timeEnd('👑 Created roles...')
+	console.timeEnd('👑 Upserted roles...')
 
-	const totalUsers = 5
-	console.time(`👤 Created ${totalUsers} users...`)
+	// const totalUsers = 5
+	// console.time(`👤 Upserted ${totalUsers} users...`)
 	const userImages = await getUserImages()
+	//
+	// for (let index = 0; index < totalUsers; index++) {
+	// 	const userData = createUser()
+	// 	const user = await prisma.user.upsert({
+	// 		where: {
+	// 			username: userData.username,
+	// 		},
+	// 		update: {},
+	// 		create: {
+	// 			...userData,
+	// 			password: { create: createPassword(userData.username) },
+	// 			roles: { connect: { name: 'user' } },
+	// 		},
+	// 		select: { id: true },
+	// 	})
+	//
+	// 	// Upload user profile image
+	// 	const userImage = userImages[index % userImages.length]
+	// 	if (userImage) {
+	// 		await prisma.userImage.upsert({
+	// 			where: {
+	// 				userId: user.id,
+	// 				objectKey: userImage.objectKey,
+	// 			},
+	// 			update: {},
+	// 			create: {
+	// 				userId: user.id,
+	// 				objectKey: userImage.objectKey,
+	// 			},
+	// 		})
+	// 	}
+	// }
+	// console.timeEnd(`👤 Upserted ${totalUsers} users...`)
 
-	for (let index = 0; index < totalUsers; index++) {
-		const userData = createUser()
-		const user = await prisma.user.upsert({
-			where: {
-				username: userData.username,
-			},
-			update: {},
-			create: {
-				...userData,
-				password: { create: createPassword(userData.username) },
-				roles: { connect: { name: 'user' } },
-			},
-			select: { id: true },
-		})
-
-		// Upload user profile image
-		const userImage = userImages[index % userImages.length]
-		if (userImage) {
-			await prisma.userImage.upsert({
-				where: {
-					userId: user.id,
-					objectKey: userImage.objectKey
-				},
-				update: {},
-				create: {
-					userId: user.id,
-					objectKey: userImage.objectKey,
-				},
-			})
-		}
-	}
-	console.timeEnd(`👤 Created ${totalUsers} users...`)
-
-	console.time('👑 Created admin user "admin"')
+	console.time('👑 Upserted admin user "admin"')
 	const adminUser = await prisma.user.upsert({
 		where: {
 			username: 'admin',
@@ -133,7 +132,7 @@ async function seed() {
 		await prisma.userImage.upsert({
 			where: {
 				userId: adminUser.id,
-				objectKey: adminUserImage.objectKey
+				objectKey: adminUserImage.objectKey,
 			},
 			update: {},
 			create: {
@@ -143,7 +142,7 @@ async function seed() {
 		})
 	}
 
-	console.timeEnd('👑 Created admin user "admin"')
+	console.timeEnd('👑 Upserted admin user "admin"')
 
 	console.timeEnd(`🌱 Database has been seeded`)
 }

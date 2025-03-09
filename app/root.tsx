@@ -1,3 +1,4 @@
+import { OpenImgContextProvider } from 'openimg/react'
 import React from 'react'
 import {
 	data,
@@ -14,20 +15,23 @@ import { useChangeLanguage } from 'remix-i18next/react'
 import { HoneypotProvider } from 'remix-utils/honeypot/react'
 import { type Route } from './+types/root.ts'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
-import { fallbackLng } from '@/config/i18n.ts'
 
 import './tailwind.css'
-import { useOptionalTheme } from '@/routes/resources+/theme-switch.tsx'
+import { useToast } from '@/components/toaster.tsx'
+import { Toaster } from '@/components/ui/sonner.tsx'
+import { useTheme } from '@/routes/resources+/theme-switch.tsx'
 import { getUserId, logout } from '@/utils/auth.server.ts'
-import { getHints } from '@/utils/client-hints.tsx'
+import { ClientHintCheck, getHints } from '@/utils/client-hints.tsx'
 import { prisma } from '@/utils/db.server.ts'
 import { getEnv } from '@/utils/env.server.ts'
 import { honeypot } from '@/utils/honeypot.server.ts'
+import { i18n } from '@/utils/i18n'
 import { i18next } from '@/utils/i18next.server.ts'
-import { combineHeaders } from '@/utils/misc.tsx'
+import { combineHeaders, getImgSrc } from '@/utils/misc.tsx'
 import { useNonce } from '@/utils/nonce-provider.ts'
 import { getTheme } from '@/utils/theme.server.ts'
 import { makeTimings, time } from '@/utils/timing.server.ts'
+import { getToast } from '@/utils/toast.server.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const timings = makeTimings('root loader')
@@ -68,6 +72,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 		await logout({ request, redirectTo: '/' })
 	}
 
+	const { toast, headers: toastHeaders } = await getToast(request)
 	const honeyProps = await honeypot.getInputProps()
 	const locale = await i18next.getLocale(request)
 
@@ -82,11 +87,17 @@ export async function loader({ request }: Route.LoaderArgs) {
 					theme: getTheme(request),
 				},
 			},
+			toast,
 			ENV: getEnv(),
 			honeyProps,
 		},
 		{
-			headers: combineHeaders({ 'Server-Timing': timings.toString() }),
+			headers: combineHeaders(
+				{
+					'Server-Timing': timings.toString(),
+				},
+				toastHeaders,
+			),
 		},
 	)
 }
@@ -119,14 +130,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	const nonce = useNonce()
 	const { locale } = data.requestInfo
 	useChangeLanguage(locale)
-	const theme = useOptionalTheme()
+	const theme = useTheme()
+	useToast(data.toast)
 
 	return (
 		<html
-			lang={data.requestInfo.locale || fallbackLng}
+			lang={data.requestInfo.locale || i18n.fallbackLng}
 			className={`${theme} light h-full overflow-x-hidden`}
 		>
 			<head>
+				<ClientHintCheck nonce={nonce} />
 				<Meta />
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -145,6 +158,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				/>
 				<ScrollRestoration nonce={nonce} />
 				<Scripts nonce={nonce} />
+				<Toaster closeButton position="top-center" theme={theme} />
 			</body>
 		</html>
 	)
@@ -153,7 +167,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App({ loaderData }: Route.ComponentProps) {
 	return (
 		<HoneypotProvider {...loaderData.honeyProps}>
-			<Outlet />
+			<OpenImgContextProvider
+				optimizerEndpoint="/resources/images"
+				getSrc={getImgSrc}
+			>
+				<Outlet />
+			</OpenImgContextProvider>
 		</HoneypotProvider>
 	)
 }
