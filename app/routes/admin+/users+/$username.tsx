@@ -1,7 +1,6 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import { createPassword } from '@tests/db.utils.ts'
 import { Loader2 } from 'lucide-react'
 import React from 'react'
 import {
@@ -17,6 +16,7 @@ import { Button } from '@/components/ui/button.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
 import { Separator } from '@/components/ui/separator.tsx'
+import { getPasswordHash } from '@/utils/auth.server.ts'
 import { prisma } from '@/utils/db.server.ts'
 import { checkHoneypot } from '@/utils/honeypot.server.ts'
 import { useIsPending } from '@/utils/misc.tsx'
@@ -71,7 +71,7 @@ export async function action({ request }: Route.ActionArgs) {
 	await prisma.user.update({
 		select: { username: true },
 		where: { username: username },
-		data: { password: { update: createPassword(password) } },
+		data: { password: { update: getPasswordHash(password) } },
 	})
 
 	return data(
