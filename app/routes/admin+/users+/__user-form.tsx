@@ -99,6 +99,7 @@ export function UserForm({
 							className="grid gap-2"
 							labelProps={{ children: 'Name' }}
 							inputProps={{
+								autoFocus: true,
 								...getInputProps(fields.name, { type: 'text' }),
 							}}
 							errors={fields.name.errors}
@@ -107,7 +108,6 @@ export function UserForm({
 							className="grid gap-2"
 							labelProps={{ children: 'Email' }}
 							inputProps={{
-								autoFocus: true,
 								...getInputProps(fields.email, { type: 'text' }),
 							}}
 							errors={fields.email.errors}

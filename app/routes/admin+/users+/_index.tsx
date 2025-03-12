@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/table.tsx'
 import { cn } from '@/lib/utils.ts'
 import { prisma } from '@/utils/db.server.ts'
-import { useDateFnsLocale } from '@/utils/i18n.ts'
+import { getDateFnsLocale } from '@/utils/i18next.server.ts'
 import { getInitials, getUserImgSrc, useDebounce } from '@/utils/misc.tsx'
 
 export const meta: Route.MetaFunction = ({}) => {
@@ -155,11 +155,23 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 		}),
 	])
 
+	const localeDateFnsNs = await getDateFnsLocale(request)
+
 	return {
 		status: 'idle',
 		roles,
 		selectedRoles,
-		users,
+		users: users.map((user) => ({
+			...user,
+			createdAtFormatted: formatDistanceToNow(user.createdAt, {
+				locale: localeDateFnsNs,
+				addSuffix: true,
+			}),
+			updatedAtFormatted: formatDistanceToNow(user.createdAt, {
+				locale: localeDateFnsNs,
+				addSuffix: true,
+			}),
+		})),
 		pagination: {
 			take,
 			skip,
@@ -312,7 +324,6 @@ function UserFiltersForm() {
 function UsersTable() {
 	const { pagination, users } = useLoaderData<typeof loader>()
 	const { t } = useTranslation()
-	const localeDateFnsNs = useDateFnsLocale()
 
 	return (
 		pagination.total > 0 && (
@@ -374,18 +385,8 @@ function UsersTable() {
 							<TableCell className="text-center">
 								{user.sessions.length}
 							</TableCell>
-							<TableCell>
-								{formatDistanceToNow(user.createdAt, {
-									locale: localeDateFnsNs,
-									addSuffix: true,
-								})}
-							</TableCell>
-							<TableCell>
-								{formatDistanceToNow(user.updatedAt, {
-									locale: localeDateFnsNs,
-									addSuffix: true,
-								})}
-							</TableCell>
+							<TableCell>{user.createdAtFormatted}</TableCell>
+							<TableCell>{user.updatedAtFormatted}</TableCell>
 						</TableRow>
 					))}
 				</TableBody>
