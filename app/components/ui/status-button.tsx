@@ -12,8 +12,8 @@ import {
 import { cn } from '@/lib/utils.ts'
 
 function StatusButton({
-	message,
 	status,
+	message,
 	className,
 	children,
 	spinDelay,
@@ -33,7 +33,7 @@ function StatusButton({
 		pending: delayedPending ? (
 			<div
 				role="status"
-				className="inline-flex h-6 w-6 items-center justify-center"
+				className="inline-flex size-6 items-center justify-center"
 			>
 				<AccessibleIcon label="loading">
 					<LoaderCircle className="animate-spin" />
@@ -43,7 +43,7 @@ function StatusButton({
 		success: (
 			<div
 				role="status"
-				className="inline-flex h-6 w-6 items-center justify-center"
+				className="inline-flex size-6 items-center justify-center"
 			>
 				<AccessibleIcon label="success">
 					<Check />
@@ -53,7 +53,7 @@ function StatusButton({
 		error: (
 			<div
 				role="status"
-				className="bg-destructive inline-flex h-6 w-6 items-center justify-center rounded-full"
+				className="bg-destructive inline-flex size-6 items-center justify-center rounded-full"
 			>
 				<AccessibleIcon label="error">
 					<X className="text-destructive-foreground" />
@@ -64,25 +64,23 @@ function StatusButton({
 	}[status]
 
 	return (
-		(!children && !message && !companion) ?? (
-			<Button
-				data-slot="button"
-				className={cn('flex justify-center gap-1', className)}
-				{...props}
-			>
-				<div>{children}</div>
-				{message ? (
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>{companion}</TooltipTrigger>
-							<TooltipContent>{message}</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
-				) : (
-					companion
-				)}
-			</Button>
-		)
+		<Button
+			data-slot="button"
+			className={cn('flex justify-center gap-1', className)}
+			{...props}
+		>
+			{children ? <div>{children}</div> : null}
+			{message ? (
+				<TooltipProvider>
+					<Tooltip>
+						<TooltipTrigger asChild>{companion}</TooltipTrigger>
+						<TooltipContent>{message}</TooltipContent>
+					</Tooltip>
+				</TooltipProvider>
+			) : (
+				companion
+			)}
+		</Button>
 	)
 }
 

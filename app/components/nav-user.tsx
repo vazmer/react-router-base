@@ -1,6 +1,7 @@
 import { ChevronsUpDown, LogOut } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Form } from 'react-router'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar.tsx'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import {
 	DropdownMenu,
@@ -33,13 +34,16 @@ function UserDropdownItem() {
 			</Avatar>
 			<div className="grid flex-1 text-left text-sm leading-tight">
 				<span className="truncate font-semibold">{user.name}</span>
-				<span className="truncate text-xs">{user.username}</span>
+				<span className="text-muted-foreground truncate text-xs">
+					{user.email}
+				</span>
 			</div>
 		</>
 	)
 }
 
 export function NavUser() {
+	const { t } = useTranslation()
 	return (
 		<SidebarMenu>
 			<SidebarMenuItem>
@@ -73,7 +77,7 @@ export function NavUser() {
 							>
 								<DropdownMenuItem className="w-full">
 									<LogOut />
-									Logout
+									{t('sidebar.logout')}
 								</DropdownMenuItem>
 							</Button>
 						</Form>

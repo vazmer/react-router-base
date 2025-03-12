@@ -19,6 +19,8 @@ const schema = z.object({
 	AWS_REGION: z.string(),
 	AWS_ENDPOINT_URL_S3: z.string().url(),
 	BUCKET_NAME: z.string(),
+
+	FALLBACK_THEME: z.enum(['light', 'dark']).default('light'),
 })
 
 declare global {
@@ -34,6 +36,8 @@ export function init() {
 		console.error(
 			'❌ Invalid environment variables:',
 			parsed.error.flatten().fieldErrors,
+			'ENV variables:',
+			process.env,
 		)
 
 		throw new Error('Invalid environment variables')
@@ -54,6 +58,7 @@ export function getEnv() {
 		MODE: process.env.NODE_ENV,
 		SENTRY_DSN: process.env.SENTRY_DSN,
 		ALLOW_INDEXING: process.env.ALLOW_INDEXING,
+		FALLBACK_THEME: process.env.FALLBACK_THEME,
 	}
 }
 

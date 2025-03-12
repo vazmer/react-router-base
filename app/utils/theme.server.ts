@@ -6,7 +6,9 @@ export type Theme = 'light' | 'dark'
 
 export function getTheme(request: Request): Theme | null {
 	const cookieHeader = request.headers.get('cookie')
-	const parsed = cookieHeader ? cookie.parse(cookieHeader)[cookieName] : 'light'
+	const parsed = cookieHeader
+		? cookie.parse(cookieHeader)[cookieName]
+		: process.env.FALLBACK_THEME
 	if (parsed === 'light' || parsed === 'dark') return parsed
 	return null
 }
