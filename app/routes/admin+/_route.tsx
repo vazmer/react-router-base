@@ -13,7 +13,6 @@ import {
 import { type BreadcrumbHandle } from '@/routes/admin+/_index.tsx'
 import { ThemeSwitch } from '@/routes/resources+/theme-switch.tsx'
 import { requireUserWithRole } from '@/utils/permission.server.ts'
-import { useRequestInfo } from '@/utils/request-info.ts'
 
 export const loader = async ({ request }: Route.LoaderArgs) => {
 	await requireUserWithRole(request, 'admin')
@@ -25,7 +24,6 @@ export const handle: BreadcrumbHandle = {
 }
 
 export default function App() {
-	const { userPrefs } = useRequestInfo()
 	return (
 		<SidebarProvider>
 			<AppSidebar />
@@ -41,7 +39,7 @@ export default function App() {
 					</div>
 					<div className="flex shrink-0 items-center gap-2">
 						<LanguageDropDown />
-						<ThemeSwitch userPreference={userPrefs.theme} />
+						<ThemeSwitch />
 					</div>
 				</header>
 				<div className="p-4">
