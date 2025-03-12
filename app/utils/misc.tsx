@@ -35,6 +35,12 @@ export function getImgSrc({
 	}
 	return defaultGetSrc({ height, optimizerEndpoint, src, width, fit, format })
 }
+
+export function getInitials(name?: string) {
+	const [firstName, lastName] = name?.split(' ') || []
+	return `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`
+}
+
 export function getErrorMessage(error: unknown) {
 	if (typeof error === 'string') return error
 	if (

@@ -5,6 +5,7 @@ export const USERNAME_MAX_LENGTH = 20
 
 export const UsernameSchema = z
 	.string({ required_error: 'Username is required' })
+	.trim()
 	.min(USERNAME_MIN_LENGTH, { message: 'Username is too short' })
 	.max(USERNAME_MAX_LENGTH, { message: 'Username is too long' })
 	.regex(/^[a-zA-Z0-9_]+$/, {
@@ -24,16 +25,27 @@ export const PasswordSchema = z
 
 export const NameSchema = z
 	.string({ required_error: 'Name is required' })
+	.trim()
 	.min(3, { message: 'Name is too short' })
 	.max(40, { message: 'Name is too long' })
+	.includes(' ', {
+		message: 'Name must include first and last name separated by empty space',
+	})
 
 export const EmailSchema = z
 	.string({ required_error: 'Email is required' })
+	.trim()
 	.email({ message: 'Email is invalid' })
 	.min(3, { message: 'Email is too short' })
 	.max(100, { message: 'Email is too long' })
 	// users can type the email in any case, but we store it in lowercase
 	.transform((value) => value.toLowerCase())
+
+export const RolesSchema = z
+	.enum(['admin', 'user'], {
+		required_error: 'Role is required',
+	})
+	.array()
 
 export const PasswordAndConfirmPasswordSchema = z
 	.object({ password: PasswordSchema, confirmPassword: PasswordSchema })

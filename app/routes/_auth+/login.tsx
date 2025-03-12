@@ -1,13 +1,13 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { Loader2 } from 'lucide-react'
+import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import React from 'react'
 import { data, Form, useSearchParams } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { type Route } from './+types/login.ts'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
-import { Button } from '@/components/ui/button.tsx'
+import { ErrorList, Field } from '@/components/forms.tsx'
 import {
 	Card,
 	CardContent,
@@ -15,17 +15,16 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card.tsx'
-import { Input } from '@/components/ui/input.tsx'
-import { Label } from '@/components/ui/label.tsx'
+import { StatusButton } from '@/components/ui/status-button.tsx'
 import { handleNewSession } from '@/routes/_auth+/login.server.ts'
 import { login, requireAnonymous } from '@/utils/auth.server.ts'
 import { checkHoneypot } from '@/utils/honeypot.server.ts'
 import { useIsPending } from '@/utils/misc'
 import { PasswordSchema, UsernameSchema } from '@/utils/user-validation.ts'
 
-// export const handle: SEOHandle = {
-// 	getSitemapEntries: () => null,
-// }
+export const handle: SEOHandle = {
+	getSitemapEntries: () => null,
+}
 
 const LoginFormSchema = z.object({
 	username: UsernameSchema,
@@ -114,31 +113,36 @@ export default function Login({ actionData }: Route.ComponentProps) {
 							<Form method="POST" {...getFormProps(form)}>
 								<HoneypotInputs />
 								<div className="flex flex-col gap-6">
-									<div className="grid gap-2">
-										<Label htmlFor="username">Username</Label>
-										<Input
-											placeholder="m@example.com"
-											autoFocus
-											autoComplete="username"
-											{...getInputProps(fields.username, { type: 'text' })}
-										/>
-										{fields.username.errors?.join('-')}
-									</div>
-									<div className="grid gap-2">
-										<div className="flex items-center">
-											<Label htmlFor="password">Password</Label>
-											{fields.password.errors?.join('-')}
-										</div>
-										<Input
-											{...getInputProps(fields.password, { type: 'password' })}
-											autoComplete="current-password"
-										/>
-									</div>
-									<Button disabled={isPending} type="submit" className="w-full">
-										{isPending && <Loader2 className="animate-spin" />}
+									<Field
+										className="grid gap-2"
+										labelProps={{ children: 'Username' }}
+										inputProps={{
+											...getInputProps(fields.username, { type: 'text' }),
+											placeholder: 'm@example.com',
+											autoComplete: 'username',
+											autoFocus: true,
+										}}
+										errors={fields.username.errors}
+									/>
+									<Field
+										className="grid gap-2"
+										labelProps={{ children: 'Password' }}
+										inputProps={{
+											...getInputProps(fields.password, { type: 'password' }),
+											autoComplete: 'current-password',
+										}}
+										errors={fields.password.errors}
+									/>
+									<ErrorList errors={fields.password.errors} />
+									<StatusButton
+										className="w-full"
+										type="submit"
+										disabled={isPending}
+										status={isPending ? 'pending' : 'idle'}
+									>
 										Login
-									</Button>
-									{form.errors?.join('-')}
+									</StatusButton>
+									<ErrorList errors={form.errors} />
 								</div>
 								<input
 									{...getInputProps(fields.redirectTo, { type: 'hidden' })}
@@ -164,7 +168,10 @@ export default function Login({ actionData }: Route.ComponentProps) {
 // ])
 
 export const meta: Route.MetaFunction = () => {
-	return [{ title: 'Login' }]
+	return [
+		{ title: 'Login | App' },
+		{ name: 'description', content: `Lobin into App` },
+	]
 }
 
 export function ErrorBoundary() {

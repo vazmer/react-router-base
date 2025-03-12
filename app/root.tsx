@@ -2,7 +2,6 @@ import { OpenImgContextProvider } from 'openimg/react'
 import React from 'react'
 import {
 	data,
-	type HeadersFunction,
 	Links,
 	Meta,
 	Outlet,
@@ -17,19 +16,24 @@ import { type Route } from './+types/root.ts'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 
 import './tailwind.css'
+import { Progress } from '@/components/progress.tsx'
 import { useToast } from '@/components/toaster.tsx'
 import { Toaster } from '@/components/ui/sonner.tsx'
-import { useTheme } from '@/routes/resources+/theme-switch.tsx'
+import {
+	useOptionalTheme,
+	useTheme,
+} from '@/routes/resources+/theme-switch.tsx'
 import { getUserId, logout } from '@/utils/auth.server.ts'
 import { ClientHintCheck, getHints } from '@/utils/client-hints.tsx'
 import { prisma } from '@/utils/db.server.ts'
 import { getEnv } from '@/utils/env.server.ts'
+import { pipeHeaders } from '@/utils/headers.server.ts'
 import { honeypot } from '@/utils/honeypot.server.ts'
 import { i18n } from '@/utils/i18n'
 import { i18next } from '@/utils/i18next.server.ts'
 import { combineHeaders, getImgSrc } from '@/utils/misc.tsx'
 import { useNonce } from '@/utils/nonce-provider.ts'
-import { getTheme } from '@/utils/theme.server.ts'
+import { getTheme, type Theme } from '@/utils/theme.server.ts'
 import { makeTimings, time } from '@/utils/timing.server.ts'
 import { getToast } from '@/utils/toast.server.ts'
 
@@ -49,6 +53,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 							id: true,
 							name: true,
 							username: true,
+							email: true,
 							image: { select: { objectKey: true } },
 							roles: {
 								select: {
@@ -110,13 +115,6 @@ export const handle = {
 	i18n: ['common'],
 }
 
-export const headers: HeadersFunction = ({ loaderHeaders }) => {
-	const headers = {
-		'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
-	}
-	return headers
-}
-
 export const meta: Route.MetaFunction = ({ data }) => {
 	return [
 		{ title: data ? 'App' : 'Error | App' },
@@ -124,26 +122,30 @@ export const meta: Route.MetaFunction = ({ data }) => {
 	]
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
-	// if there was an error running the loader, data could be missing
-	const data = useLoaderData<typeof loader>()
-	const nonce = useNonce()
-	const { locale } = data.requestInfo
-	useChangeLanguage(locale)
-	const theme = useTheme()
-	useToast(data.toast)
+export const headers: Route.HeadersFunction = pipeHeaders
+
+function Document({
+	children,
+	nonce,
+	theme = ENV.FALLBACK_THEME,
+	locale = i18n.fallbackLng,
+	env = {},
+}: {
+	nonce: string
+	theme?: Theme
+	locale?: string
+	env?: Record<string, string | undefined>
+} & React.ComponentProps<'html'>) {
+	const allowIndexing = ENV.ALLOW_INDEXING !== 'false'
 
 	return (
-		<html
-			lang={data.requestInfo.locale || i18n.fallbackLng}
-			className={`${theme} light h-full overflow-x-hidden`}
-		>
+		<html lang={locale} className={`${theme} h-full overflow-x-hidden`}>
 			<head>
 				<ClientHintCheck nonce={nonce} />
 				<Meta />
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width,initial-scale=1" />
-				{data?.ENV.ALLOW_INDEXING ? null : (
+				{allowIndexing ? null : (
 					<meta name="robots" content="noindex, nofollow" />
 				)}
 				<Links />
@@ -153,29 +155,58 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<script
 					nonce={nonce}
 					dangerouslySetInnerHTML={{
-						__html: `window.ENV = ${JSON.stringify(data?.ENV)}`,
+						__html: `window.ENV = ${JSON.stringify(env)}`,
 					}}
 				/>
 				<ScrollRestoration nonce={nonce} />
 				<Scripts nonce={nonce} />
-				<Toaster closeButton position="top-center" theme={theme} />
 			</body>
 		</html>
 	)
 }
 
-export default function App({ loaderData }: Route.ComponentProps) {
+export function Layout({ children }: { children: React.ReactNode }) {
+	// if there was an error running the loader, data could be missing
+	const data = useLoaderData<typeof loader>()
+	const nonce = useNonce()
+	const { locale } = data.requestInfo
+	const theme = useOptionalTheme()
+
 	return (
-		<HoneypotProvider {...loaderData.honeyProps}>
-			<OpenImgContextProvider
-				optimizerEndpoint="/resources/images"
-				getSrc={getImgSrc}
-			>
-				<Outlet />
-			</OpenImgContextProvider>
+		<Document nonce={nonce} theme={theme} env={data?.ENV} locale={locale}>
+			{children}
+		</Document>
+	)
+}
+
+function App() {
+	const data = useLoaderData<typeof loader>()
+	const { locale } = data.requestInfo
+	const theme = useTheme()
+	useChangeLanguage(locale)
+	useToast(data.toast)
+	return (
+		<OpenImgContextProvider
+			optimizerEndpoint="/resources/images"
+			getSrc={getImgSrc}
+		>
+			<Outlet />
+			<Toaster closeButton position="top-center" theme={theme} />
+			<Progress />
+		</OpenImgContextProvider>
+	)
+}
+
+function AppWithProviders() {
+	const data = useLoaderData<typeof loader>()
+	return (
+		<HoneypotProvider {...data.honeyProps}>
+			<App />
 		</HoneypotProvider>
 	)
 }
+
+export default AppWithProviders
 
 // this is a last resort error boundary. There's not much useful information we
 // can offer at this level.

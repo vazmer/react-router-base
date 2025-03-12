@@ -2,15 +2,21 @@
  * This file contains utilities for using client hints for user preference which
  * are needed by the server, but are only known by the browser.
  */
-import { getHintUtils } from '@epic-web/client-hints'
-import {
-	clientHint as colorSchemeHint,
-	subscribeToSchemeChange,
-} from '@epic-web/client-hints/color-scheme'
+import { type ClientHint, getHintUtils } from '@epic-web/client-hints'
+import { subscribeToSchemeChange } from '@epic-web/client-hints/color-scheme'
 import { clientHint as timeZoneHint } from '@epic-web/client-hints/time-zone'
 import * as React from 'react'
 import { useRevalidator } from 'react-router'
 import { useOptionalRequestInfo, useRequestInfo } from './request-info.ts'
+
+export const colorSchemeHint = {
+	cookieName: 'CH-prefers-color-scheme',
+	getValueCode: `window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'`,
+	fallback: 'light',
+	transform(value) {
+		return value === 'dark' ? 'dark' : 'light'
+	},
+} as const satisfies ClientHint<'dark' | 'light'>
 
 const hintsUtils = getHintUtils({
 	theme: colorSchemeHint,

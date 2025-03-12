@@ -20,10 +20,10 @@ import {
 const data = {
 	navMain: [
 		{
-			title: 'sidebar.Administration',
+			title: 'sidebar.administration',
 			items: [
 				{
-					title: 'sidebar.Users',
+					title: 'sidebar.users',
 					url: '/admin/users',
 				},
 			],

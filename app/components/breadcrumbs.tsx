@@ -9,7 +9,7 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb.tsx'
-import { BreadcrumbHandleMatch } from '@/routes/admin+'
+import { BreadcrumbHandleMatch } from '@/routes/admin+/_index.tsx'
 
 function Breadcrumbs() {
 	const matches = useMatches()
@@ -37,12 +37,17 @@ function Breadcrumbs() {
 						<Fragment key={m.id}>
 							<BreadcrumbItem className="hidden md:block">
 								<BreadcrumbLink asChild>
-									<Link className="flex items-center" to={m.pathname}>
+									<Link
+										className="flex items-center"
+										to={m.pathname}
+										viewTransition
+										prefetch="intent"
+									>
 										{breadcrumb({ match: m, t })}
 									</Link>
 								</BreadcrumbLink>
 							</BreadcrumbItem>
-							<BreadcrumbSeparator />
+							<BreadcrumbSeparator className="hidden md:block" />
 						</Fragment>
 					))}
 				{lastBreadcrumb && (

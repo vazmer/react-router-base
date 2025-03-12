@@ -1,8 +1,8 @@
-import { useForm, getFormProps } from '@conform-to/react'
+import { getFormProps, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import { AccessibleIcon } from '@radix-ui/react-accessible-icon'
-import { Laptop, Moon, Sun } from 'lucide-react'
+import { Moon, Sun } from 'lucide-react'
 import React from 'react'
 import { data, redirect, useFetcher, useFetchers } from 'react-router'
 import { ServerOnly } from 'remix-utils/server-only'
@@ -12,10 +12,10 @@ import { Button } from '@/components/ui/button.tsx'
 import { cn } from '@/lib/utils.ts'
 import { useHints, useOptionalHints } from '@/utils/client-hints.tsx'
 import { useOptionalRequestInfo, useRequestInfo } from '@/utils/request-info.ts'
-import { type Theme, setTheme } from '@/utils/theme.server.ts'
+import { setTheme } from '@/utils/theme.server.ts'
 
 const ThemeFormSchema = z.object({
-	theme: z.enum(['system', 'light', 'dark']),
+	theme: z.enum(['light', 'dark']),
 	// this is useful for progressive enhancement
 	redirectTo: z.string().optional(),
 })
@@ -40,12 +40,7 @@ export async function action({ request }: Route.ActionArgs) {
 	}
 }
 
-export function ThemeSwitch({
-	userPreference,
-	className,
-}: React.ComponentProps<'form'> & {
-	userPreference?: Theme | null
-}) {
+export function ThemeSwitch({ className }: React.ComponentProps<'form'> & {}) {
 	const fetcher = useFetcher<typeof action>()
 	const requestInfo = useRequestInfo()
 
@@ -54,27 +49,8 @@ export function ThemeSwitch({
 		lastResult: fetcher.data?.result,
 	})
 
-	const optimisticMode = useOptimisticThemeMode()
-	const mode = optimisticMode ?? userPreference ?? 'system'
-	const nextMode =
-		mode === 'system' ? 'light' : mode === 'light' ? 'dark' : 'system'
-	const modeLabel = {
-		light: (
-			<AccessibleIcon label="Light">
-				<Sun />
-			</AccessibleIcon>
-		),
-		dark: (
-			<AccessibleIcon label="Dark">
-				<Moon />
-			</AccessibleIcon>
-		),
-		system: (
-			<AccessibleIcon label="System">
-				<Laptop />
-			</AccessibleIcon>
-		),
-	}
+	const mode = useTheme()
+	const nextMode = mode === 'light' ? 'dark' : 'light'
 
 	return (
 		<fetcher.Form
@@ -96,7 +72,9 @@ export function ThemeSwitch({
 					size="icon"
 					className={cn('size-8', className)}
 				>
-					{modeLabel[mode]}
+					<AccessibleIcon label={mode}>
+						{mode === 'light' ? <Sun /> : <Moon />}
+					</AccessibleIcon>
 				</Button>
 			</div>
 		</fetcher.Form>
@@ -113,7 +91,7 @@ export function useOptimisticThemeMode() {
 		(f) => f.formAction === '/resources/theme-switch',
 	)
 
-	if (themeFetcher && themeFetcher.formData) {
+	if (themeFetcher?.formData) {
 		const submission = parseWithZod(themeFetcher.formData, {
 			schema: ThemeFormSchema,
 		})
@@ -132,18 +110,16 @@ export function useTheme() {
 	const hints = useHints()
 	const requestInfo = useRequestInfo()
 	const optimisticMode = useOptimisticThemeMode()
-	if (optimisticMode) {
-		return optimisticMode === 'system' ? hints.theme : optimisticMode
-	}
-	return requestInfo.userPrefs.theme ?? hints.theme
+	return optimisticMode ?? requestInfo.userPrefs.theme ?? hints.theme
 }
 
 export function useOptionalTheme() {
 	const optionalHints = useOptionalHints()
 	const optionalRequestInfo = useOptionalRequestInfo()
 	const optimisticMode = useOptimisticThemeMode()
-	if (optimisticMode) {
-		return optimisticMode === 'system' ? optionalHints?.theme : optimisticMode
-	}
-	return optionalRequestInfo?.userPrefs.theme ?? optionalHints?.theme
+	return (
+		optimisticMode ??
+		optionalRequestInfo?.userPrefs.theme ??
+		optionalHints?.theme
+	)
 }
