@@ -1,11 +1,11 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseFormData } from '@mjackson/form-data-parser'
 import { createId as cuid } from '@paralleldrive/cuid2'
-import { createPassword } from '@tests/db.utils.ts'
 import { data } from 'react-router'
 import { z } from 'zod'
 import { type Route } from './+types/$username.ts'
 import { MAX_UPLOAD_SIZE, UserFormSchema } from './__user-form'
+import { getPasswordHash } from '@/utils/auth.server.ts'
 import { prisma } from '@/utils/db.server.ts'
 import { checkHoneypot } from '@/utils/honeypot.server.ts'
 import { uploadProfileImage } from '@/utils/storage.server.ts'
@@ -89,7 +89,11 @@ export async function action({ request, params }: Route.ActionArgs) {
 			username,
 			email,
 			name,
-			password: { create: createPassword(username) },
+			password: {
+				create: {
+					hash: await getPasswordHash(username),
+				},
+			},
 			roles: { connect: [{ name: 'user' }] },
 			image: image.objectKey
 				? { create: { id: image.id, objectKey: image.objectKey } }

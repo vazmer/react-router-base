@@ -123,7 +123,10 @@ export function UserForm({
 						<div className="grid gap-2">
 							<Label>Image</Label>
 							<div className="border-muted-foreground relative">
-								<fieldset {...getFieldsetProps(fields.image)}>
+								<fieldset
+									{...getFieldsetProps(fields.image)}
+									key={fields.image.id}
+								>
 									<div className="flex gap-3">
 										<div className={cn('flex gap-4')}>
 											<div
