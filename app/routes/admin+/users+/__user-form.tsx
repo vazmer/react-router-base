@@ -55,6 +55,13 @@ function UserForm({
 } & React.ComponentProps<'div'>) {
 	const isPending = useIsPending()
 
+	const defaultValue = {
+		id: actionData?.user?.id ?? user?.id,
+		name: actionData?.user?.name ?? user?.name,
+		username: actionData?.user?.username ?? user?.username,
+		email: actionData?.user?.email ?? user?.email,
+	}
+
 	const [form, fields] = useForm({
 		id: 'user-form',
 		constraint: getZodConstraint(UserFormSchema),
@@ -62,12 +69,7 @@ function UserForm({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: UserFormSchema })
 		},
-		defaultValue: {
-			id: actionData?.user?.id ?? user?.id,
-			name: actionData?.user?.name ?? user?.name,
-			username: actionData?.user?.username ?? user?.username,
-			email: actionData?.user?.email ?? user?.email,
-		},
+		defaultValue: { ...defaultValue },
 		shouldDirtyConsider(fieldName) {
 			// ignore honeypot input
 			return !['from__confirm', 'image'].includes(fieldName)
@@ -77,7 +79,7 @@ function UserForm({
 	const isExistingImage = Boolean(fields.id.initialValue)
 	const imageFieldset = fields.image.getFieldset()
 	const initialImage = useMemo(
-		() => (user?.image?.objectKey ? getUserImgSrc(user.image.objectKey) : null),
+		() => getUserImgSrc(user?.image?.objectKey || null),
 		[user?.image?.objectKey],
 	)
 	const [previewImage, setPreviewImage] = useState<string | null>(initialImage)
@@ -105,7 +107,11 @@ function UserForm({
 							<fieldset {...getFieldsetProps(fields.image)}>
 								<div className="flex gap-3">
 									<div className={cn('flex gap-4')}>
-										<ProfileImage previewImage={previewImage} />
+										<ProfileImage
+											previewImage={
+												imageFieldset.file.dirty ? previewImage : initialImage
+											}
+										/>
 										{isExistingImage ? (
 											<input
 												{...getInputProps(imageFieldset.id, {
@@ -158,9 +164,8 @@ function UserForm({
 															size="icon"
 															className="text-destructive-foreground border-destructive size-8"
 															onClick={() =>
-																form.update({
+																form.reset({
 																	name: 'image',
-																	value: user?.image || {},
 																})
 															}
 														>
