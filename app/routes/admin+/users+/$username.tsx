@@ -15,7 +15,6 @@ export async function loader({ params }: Route.LoaderArgs) {
 			name: true,
 			username: true,
 			email: true,
-			createdAt: true,
 			image: { select: { id: true, objectKey: true } },
 		},
 		where: {
@@ -25,7 +24,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 	invariantResponse(user, 'User not found', { status: 404 })
 
-	return { user, userJoinedDisplay: user.createdAt.toLocaleDateString() }
+	return { user }
 }
 
 export default function User({ loaderData, actionData }: Route.ComponentProps) {

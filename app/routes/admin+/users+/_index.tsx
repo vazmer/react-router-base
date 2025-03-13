@@ -1,6 +1,12 @@
-import { getFormProps, useForm } from '@conform-to/react'
+import {
+	getFormProps,
+	getInputProps,
+	getSelectProps,
+	useForm,
+} from '@conform-to/react'
 import { type Prisma } from '@prisma/client'
-import { type Duration, formatDistanceToNow, sub } from 'date-fns'
+import { type Duration, formatDistanceToNow, intlFormat, sub } from 'date-fns'
+import { type IntlFormatFormatOptions } from 'date-fns/intlFormat'
 import { Plus, SearchIcon } from 'lucide-react'
 import React, { useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,6 +17,7 @@ import {
 	useSearchParams,
 	useSubmit,
 } from 'react-router'
+import { z } from 'zod'
 import { type Route } from './+types/_index'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { PaginationBar } from '@/components/pagination-bar.tsx'
@@ -36,20 +43,20 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table.tsx'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from '@/components/ui/tooltip.tsx'
 import { cn } from '@/lib/utils.ts'
 import { prisma } from '@/utils/db.server.ts'
 import { getDateFnsLocale } from '@/utils/i18next.server.ts'
 import { getInitials, getUserImgSrc, useDebounce } from '@/utils/misc.tsx'
 
-export const meta: Route.MetaFunction = ({}) => {
-	return [
-		{ title: `Users | App Administration` },
-		{
-			name: 'description',
-			content: `Users on App Administration`,
-		},
-	]
-}
+export const FilterSchema = z.object({
+	status: z.string(),
+	author: z.string(),
+})
 
 export const loader = async ({ request }: Route.LoaderArgs) => {
 	const url = new URL(request.url)
@@ -157,20 +164,39 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 
 	const localeDateFnsNs = await getDateFnsLocale(request)
 
+	const dateFormat: IntlFormatFormatOptions = {
+		weekday: 'long',
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: 'numeric',
+	}
+
 	return {
 		status: 'idle',
 		roles,
 		selectedRoles,
 		users: users.map((user) => ({
 			...user,
-			createdAtFormatted: formatDistanceToNow(user.createdAt, {
-				locale: localeDateFnsNs,
-				addSuffix: true,
-			}),
-			updatedAtFormatted: formatDistanceToNow(user.createdAt, {
-				locale: localeDateFnsNs,
-				addSuffix: true,
-			}),
+			createdAt: {
+				distanceToNow: formatDistanceToNow(user.createdAt, {
+					locale: localeDateFnsNs,
+					addSuffix: true,
+				}),
+				formatted: intlFormat(user.createdAt, dateFormat, {
+					locale: localeDateFnsNs.code,
+				}),
+			},
+			updatedAt: {
+				distanceToNow: formatDistanceToNow(user.updatedAt, {
+					locale: localeDateFnsNs,
+					addSuffix: true,
+				}),
+				formatted: intlFormat(user.updatedAt, dateFormat, {
+					locale: localeDateFnsNs.code,
+				}),
+			},
 		})),
 		pagination: {
 			take,
@@ -192,7 +218,7 @@ export default function Users() {
 						prefetch="intent"
 					>
 						<Plus />
-						New
+						Add new
 					</Link>
 				</div>
 			</div>
@@ -217,8 +243,12 @@ function UserFiltersForm() {
 	// 	formAction: location.pathname,
 	// })
 
-	const [form] = useForm({
+	const [form, fields] = useForm({
 		id: 'login-form',
+		defaultValue: {
+			search: searchParams.get('search') ?? '',
+			createdAtFrom: searchParams.get('createdAtFrom') || 'all',
+		},
 	})
 
 	const handleFormChange = useDebounce(async () => {
@@ -232,11 +262,11 @@ function UserFiltersForm() {
 			ref={formRef}
 			method="GET"
 			autoFocus
-			className="flex grow flex-wrap justify-center gap-2"
+			className="flex grow flex-wrap gap-2"
 			{...getFormProps(form)}
 			onChange={() => handleFormChange()}
 		>
-			<div className="relative flex grow flex-wrap items-center justify-center gap-2">
+			<div className="relative flex grow flex-wrap justify-center gap-2">
 				<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 					<SearchIcon className="size-4 text-gray-500 dark:text-gray-400" />
 				</div>
@@ -244,16 +274,15 @@ function UserFiltersForm() {
 					{t('search')}
 				</Label>
 				<Input
-					type="search"
-					name="search"
-					id={id}
-					defaultValue={searchParams.get('search') ?? ''}
 					placeholder={t('Search...')}
 					className="w-full pl-8 text-sm"
 					autoFocus
+					{...getInputProps(fields.search, { type: 'search' })}
+					id={id}
 				/>
 			</div>
 			<MultiSelect
+				name="roles"
 				label={`${t('users.roles')}:`}
 				variant="secondary"
 				className="max-w-[250px] min-w-[150px]"
@@ -269,8 +298,8 @@ function UserFiltersForm() {
 				maxCount={3}
 			/>
 			<Select
-				name="createdAtFrom"
-				defaultValue={searchParams.get('createdAtFrom') || 'all'}
+				{...getSelectProps(fields.createdAtFrom)}
+				defaultValue={fields.createdAtFrom.initialValue}
 			>
 				<SelectTrigger className="items-start">
 					<span className="text-muted-foreground">
@@ -349,29 +378,36 @@ function UsersTable() {
 					{users.map((user) => (
 						<TableRow key={user.id}>
 							<TableCell>
-								<div className="flex items-center gap-3">
-									<Avatar className="bg-muted ring-ring size-8 rounded-r-full ring-1">
-										<AvatarImage
-											src={getUserImgSrc(user.image?.objectKey)}
-											alt={user.name || user.username}
-										/>
-										<AvatarFallback className="rounded-lg">
-											{getInitials(`${user.name} ${user.username}`)}
-										</AvatarFallback>
-									</Avatar>
-									<div className="grid flex-1 text-left text-sm leading-tight">
+								<Tooltip delayDuration={400}>
+									<TooltipTrigger>
 										<Link
 											to={`/admin/users/${user.username}`}
-											className="truncate font-semibold"
+											className="flex items-center gap-3 font-semibold"
 											viewTransition
 										>
-											<span className="">{user.name}</span>
+											<Avatar
+												className="bg-muted ring-ring size-8 rounded-r-full ring-1 max-sm:hidden"
+												aria-hidden={true}
+											>
+												<AvatarImage
+													src={getUserImgSrc(user.image?.objectKey)}
+													alt={user.name || user.username}
+												/>
+												<AvatarFallback className="rounded-lg">
+													{getInitials(`${user.name} ${user.username}`)}
+												</AvatarFallback>
+											</Avatar>
+											<div className="grid flex-1 text-left text-sm leading-tight">
+												<span className="">{user.name}</span>
+
+												<span className="text-muted-foreground truncate text-xs">
+													{user.email}
+												</span>
+											</div>
 										</Link>
-										<span className="text-muted-foreground truncate text-xs">
-											{user.email}
-										</span>
-									</div>
-								</div>
+									</TooltipTrigger>
+									<TooltipContent>Edit</TooltipContent>
+								</Tooltip>
 							</TableCell>
 							<TableCell>
 								<div className="flex flex-wrap gap-1">
@@ -385,8 +421,22 @@ function UsersTable() {
 							<TableCell className="text-center">
 								{user.sessions.length}
 							</TableCell>
-							<TableCell>{user.createdAtFormatted}</TableCell>
-							<TableCell>{user.updatedAtFormatted}</TableCell>
+							<TableCell>
+								<Tooltip delayDuration={400}>
+									<TooltipTrigger>
+										{user.createdAt.distanceToNow}
+									</TooltipTrigger>
+									<TooltipContent>{user.createdAt.formatted}</TooltipContent>
+								</Tooltip>
+							</TableCell>
+							<TableCell>
+								<Tooltip delayDuration={400}>
+									<TooltipTrigger>
+										{user.updatedAt.distanceToNow}
+									</TooltipTrigger>
+									<TooltipContent>{user.updatedAt.formatted}</TooltipContent>
+								</Tooltip>
+							</TableCell>
 						</TableRow>
 					))}
 				</TableBody>
@@ -422,6 +472,16 @@ function UsersTable() {
 			</Table>
 		)
 	)
+}
+
+export const meta: Route.MetaFunction = ({}) => {
+	return [
+		{ title: `Users | App Administration` },
+		{
+			name: 'description',
+			content: `Users on App Administration`,
+		},
+	]
 }
 
 export function ErrorBoundary() {

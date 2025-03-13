@@ -45,6 +45,8 @@ export function Field({
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
 				{...inputProps}
+				// // https://github.com/edmundhung/conform/issues/600#issuecomment-2074577745
+				key={inputProps.key}
 			/>
 			{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 		</div>

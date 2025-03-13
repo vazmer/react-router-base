@@ -19,6 +19,7 @@ import './tailwind.css'
 import { Progress } from '@/components/progress.tsx'
 import { useToast } from '@/components/toaster.tsx'
 import { Toaster } from '@/components/ui/sonner.tsx'
+import { TooltipProvider } from '@/components/ui/tooltip.tsx'
 import {
 	useOptionalTheme,
 	useTheme,
@@ -29,7 +30,7 @@ import { prisma } from '@/utils/db.server.ts'
 import { getEnv } from '@/utils/env.server.ts'
 import { pipeHeaders } from '@/utils/headers.server.ts'
 import { honeypot } from '@/utils/honeypot.server.ts'
-import { i18n } from '@/utils/i18n'
+import { i18n, type LngSchema } from '@/utils/i18n'
 import { i18next } from '@/utils/i18next.server.ts'
 import { combineHeaders, getImgSrc } from '@/utils/misc.tsx'
 import { useNonce } from '@/utils/nonce-provider.ts'
@@ -79,7 +80,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 	const { toast, headers: toastHeaders } = await getToast(request)
 	const honeyProps = await honeypot.getInputProps()
-	const locale = await i18next.getLocale(request)
+	const locale = (await i18next.getLocale(request)) as LngSchema
 
 	return data(
 		{
@@ -190,9 +191,11 @@ function App() {
 			optimizerEndpoint="/resources/images"
 			getSrc={getImgSrc}
 		>
-			<Outlet />
-			<Toaster closeButton position="top-center" theme={theme} />
-			<Progress />
+			<TooltipProvider>
+				<Outlet />
+				<Toaster closeButton position="top-center" theme={theme} />
+				<Progress />
+			</TooltipProvider>
 		</OpenImgContextProvider>
 	)
 }
