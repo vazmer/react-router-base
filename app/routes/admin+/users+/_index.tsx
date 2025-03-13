@@ -423,7 +423,7 @@ function UsersTable() {
 							</TableCell>
 							<TableCell>
 								<Tooltip delayDuration={400}>
-									<TooltipTrigger>
+									<TooltipTrigger className="text-left">
 										{user.createdAt.distanceToNow}
 									</TooltipTrigger>
 									<TooltipContent>{user.createdAt.formatted}</TooltipContent>
@@ -431,7 +431,7 @@ function UsersTable() {
 							</TableCell>
 							<TableCell>
 								<Tooltip delayDuration={400}>
-									<TooltipTrigger>
+									<TooltipTrigger className="text-left">
 										{user.updatedAt.distanceToNow}
 									</TooltipTrigger>
 									<TooltipContent>{user.updatedAt.formatted}</TooltipContent>
