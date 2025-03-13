@@ -27,7 +27,11 @@ export async function loader({ params }: Route.LoaderArgs) {
 	return { user }
 }
 
-export default function User({ loaderData, actionData }: Route.ComponentProps) {
+export default function User({
+	loaderData,
+	actionData,
+	params,
+}: Route.ComponentProps) {
 	return (
 		<div className="flex flex-col gap-6">
 			<div>
@@ -38,7 +42,11 @@ export default function User({ loaderData, actionData }: Route.ComponentProps) {
 				</p>
 			</div>
 			<Separator />
-			<UserForm user={loaderData.user} actionData={actionData} />
+			<UserForm
+				user={loaderData.user}
+				actionData={actionData}
+				params={params}
+			/>
 		</div>
 	)
 }

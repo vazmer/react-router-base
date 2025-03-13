@@ -6,9 +6,10 @@ import {
 	useForm,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useEffectEvent } from '@react-aria/utils'
 import { Upload, UserRound, X } from 'lucide-react'
 import { Img } from 'openimg/react'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Form } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
@@ -47,11 +48,13 @@ export const UserFormSchema = z.object({
 })
 
 function UserForm({
+	params,
 	user,
 	actionData,
 }: {
 	user?: Info['loaderData']['user']
 	actionData?: Info['actionData']
+	params: Info['params']
 } & React.ComponentProps<'div'>) {
 	const isPending = useIsPending()
 
@@ -76,13 +79,22 @@ function UserForm({
 		},
 		shouldRevalidate: 'onBlur',
 	})
-	const isExistingImage = Boolean(fields.id.initialValue)
 	const imageFieldset = fields.image.getFieldset()
+	const isExistingImage = Boolean(fields.id.initialValue)
+	const [initialUsername, setInitialUsername] = useState(params.username)
 	const initialImage = useMemo(
 		() => getUserImgSrc(user?.image?.objectKey || null),
 		[user?.image?.objectKey],
 	)
 	const [previewImage, setPreviewImage] = useState<string | null>(initialImage)
+
+	const resetForm = useEffectEvent(() => form.reset())
+	useEffect(() => {
+		if (params.username !== initialUsername) {
+			resetForm()
+			setInitialUsername(params.username)
+		}
+	}, [resetForm, params.username, initialUsername])
 
 	return (
 		<FormProvider context={form.context}>
