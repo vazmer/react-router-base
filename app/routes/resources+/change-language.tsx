@@ -5,7 +5,13 @@ import { Languages } from 'lucide-react'
 import React, { useRef } from 'react'
 import Flag from 'react-flagkit'
 import { useTranslation } from 'react-i18next'
-import { data, redirect, useFetcher, useSubmit } from 'react-router'
+import {
+	data,
+	redirect,
+	useActionData,
+	useFetcher,
+	useSubmit,
+} from 'react-router'
 import { z } from 'zod'
 import { type Route } from './+types/change-language.ts'
 import { Button } from '@/components/ui/button.tsx'
@@ -16,7 +22,7 @@ import {
 	DropdownMenuRadioItem,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx'
-import { i18n, LngSchema } from '@/utils/i18n.ts'
+import { LngSchema } from '@/utils/i18n.ts'
 import { i18nCookie } from '@/utils/i18next.server.ts'
 import { useRequestInfo } from '@/utils/request-info.ts'
 
@@ -33,9 +39,8 @@ export async function action({ request }: Route.ActionArgs) {
 	})
 
 	invariantResponse(
-		submission.status === 'success' &&
-			i18n.supportedLngs.includes(submission.value.lng),
-		'Invalid language received',
+		submission.status === 'success',
+		`Invalid language received`,
 	)
 
 	const { lng, redirectTo } = submission.value
@@ -51,17 +56,18 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export function LanguageDropDown() {
-	const fetcher = useFetcher<typeof action>()
 	const requestInfo = useRequestInfo()
-	const { t, i18n } = useTranslation()
+	const actionData = useActionData<typeof action>()
+	const fetcher = useFetcher<typeof action>()
 	const formRef = useRef<HTMLFormElement>(null)
 	const submit = useSubmit()
+	const { t, i18n } = useTranslation()
 
 	const [form, fields] = useForm({
 		id: 'change-language',
-		defaultValue: { lng: requestInfo.locale, redirectTo: requestInfo.path },
+		defaultValue: { lng: i18n.language, redirectTo: requestInfo.path },
 		constraint: getZodConstraint(ChangeLanguageSchema),
-		lastResult: fetcher.data?.result,
+		lastResult: actionData?.result,
 	})
 
 	const handleFormChange = async (lng: LngSchema) => {
@@ -73,11 +79,15 @@ export function LanguageDropDown() {
 		<fetcher.Form
 			ref={formRef}
 			method="POST"
-			{...getFormProps(form)}
 			action="/resources/change-language"
+			{...getFormProps(form)}
 		>
-			<input name="redirectTo" value={requestInfo.path} type="hidden" />
-			<input name={fields.lng.name} value={requestInfo.locale} type="hidden" />
+			<input
+				name={fields.redirectTo.name}
+				value={requestInfo.path}
+				type="hidden"
+			/>
+			<input name={fields.lng.name} value={i18n.language} type="hidden" />
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button
