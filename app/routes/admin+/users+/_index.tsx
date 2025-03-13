@@ -446,18 +446,18 @@ function UsersTable() {
 							colSpan={1}
 							className="text-xs text-gray-500 dark:text-gray-400"
 						>
-							Showing{' '}
-							{pagination.total > pagination.take && (
-								<>
-									{Math.min(pagination.total, pagination.skip + 1)}-
-									{Math.min(
-										pagination.take + pagination.skip,
-										pagination.total,
-									)}{' '}
-									of{' '}
-								</>
-							)}
-							{pagination.total} user(s)
+							{t('table.usersCountSummary', {
+								context:
+									pagination.total <= pagination.take
+										? 'singlePage'
+										: 'multiplePages',
+								count: pagination.total,
+								from: Math.min(pagination.total, pagination.skip + 1),
+								to: Math.min(
+									pagination.take + pagination.skip,
+									pagination.total,
+								),
+							})}
 						</TableCell>
 						<TableCell colSpan={4}>
 							{pagination.total > pagination.take && (
