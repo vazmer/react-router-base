@@ -138,6 +138,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			result: submission.reply({ resetForm: true }),
 			user,
 		},
+
 		{
 			headers: await createToastHeaders({
 				description: `User ${user.name} updated`,
