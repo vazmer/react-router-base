@@ -62,7 +62,7 @@ export const handle = {
 export const meta: Route.MetaFunction = ({ data, params }) => {
 	const displayName = data?.user.name ?? params.username
 	return [
-		{ title: `${displayName} | App Administration` },
+		{ title: `${displayName} | Rr App Administration` },
 		{
 			name: 'description',
 			content: `Profile of ${displayName} on App Administration`,

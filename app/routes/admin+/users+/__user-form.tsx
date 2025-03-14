@@ -140,7 +140,7 @@ function UserForm({
 														variant="outline"
 														size="sm"
 														asChild
-														className="focus-within:ring-border text-sm text-xs focus-within:ring-2"
+														className="focus-within:ring-border text-xs focus-within:ring-2"
 													>
 														<label htmlFor={imageFieldset.file.id}>
 															<Upload />
@@ -290,6 +290,7 @@ function ProfileImage({ previewImage }: { previewImage: string | null }) {
 			) : (
 				<Img
 					src={previewImage}
+					alt="Profile Image"
 					className={cn(className, 'size-full object-cover')}
 					width={96}
 					height={96}

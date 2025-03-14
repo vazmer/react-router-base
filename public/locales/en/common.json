@@ -20,6 +20,7 @@
 	"users.sessions": "Sessions",
 	"users.createdAt": "Created at",
 	"users.updatedAt": "Updated at",
+	"users.anytime": "Anytime",
 	"users.lastDay": "Last day",
 	"users.last7Days": "Last 7 days",
 	"users.last30Days": "Last 30 days",

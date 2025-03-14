@@ -308,7 +308,7 @@ function UserFiltersForm() {
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>
-					<SelectItem value="all">{t('users.All')}</SelectItem>
+					<SelectItem value="all">{t('users.anytime')}</SelectItem>
 					<SelectItem value="lastDay">{t('users.lastDay')}</SelectItem>
 					<SelectItem value="last7Days">{t('users.last7Days')}</SelectItem>
 					<SelectItem value="last30Days">{t('users.last30Days')}</SelectItem>
@@ -476,10 +476,10 @@ function UsersTable() {
 
 export const meta: Route.MetaFunction = ({}) => {
 	return [
-		{ title: `Users | App Administration` },
+		{ title: `Users | Rr App Administration` },
 		{
 			name: 'description',
-			content: `Users on App Administration`,
+			content: `Users on Rr App Administration`,
 		},
 	]
 }

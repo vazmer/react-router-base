@@ -118,7 +118,7 @@ export const handle = {
 
 export const meta: Route.MetaFunction = ({ data }) => {
 	return [
-		{ title: data ? 'App' : 'Error | App' },
+		{ title: data ? 'Rr App' : 'Error | Rr App' },
 		{ name: 'description', content: `Your own captain's log` },
 	]
 }
