@@ -1,4 +1,5 @@
 import { resolve } from 'node:path'
+import { enGB, sr } from 'date-fns/locale'
 import Backend from 'i18next-fs-backend/cjs'
 import { createCookie } from 'react-router'
 import { RemixI18Next } from 'remix-i18next/server'
@@ -13,7 +14,7 @@ export const i18nCookie = createCookie('en_lang', {
 
 export const i18next = new RemixI18Next({
 	detection: {
-		supportedLanguages: i18n.supportedLngs,
+		supportedLanguages: [...i18n.supportedLngs],
 		fallbackLanguage: i18n.fallbackLng,
 		cookie: i18nCookie,
 	},
@@ -27,3 +28,15 @@ export const i18next = new RemixI18Next({
 	},
 	plugins: [Backend],
 })
+
+export async function getDateFnsLocale(request: Request) {
+	const locale = await i18next.getLocale(request)
+	switch (locale) {
+		case 'en':
+			return enGB
+		case 'sr':
+			return sr
+		default:
+			return enGB
+	}
+}

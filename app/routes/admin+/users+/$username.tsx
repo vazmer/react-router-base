@@ -15,7 +15,6 @@ export async function loader({ params }: Route.LoaderArgs) {
 			name: true,
 			username: true,
 			email: true,
-			createdAt: true,
 			image: { select: { id: true, objectKey: true } },
 		},
 		where: {
@@ -25,10 +24,14 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 	invariantResponse(user, 'User not found', { status: 404 })
 
-	return { user, userJoinedDisplay: user.createdAt.toLocaleDateString() }
+	return { user }
 }
 
-export default function User({ loaderData, actionData }: Route.ComponentProps) {
+export default function User({
+	loaderData,
+	actionData,
+	params,
+}: Route.ComponentProps) {
 	return (
 		<div className="flex flex-col gap-6">
 			<div>
@@ -39,7 +42,11 @@ export default function User({ loaderData, actionData }: Route.ComponentProps) {
 				</p>
 			</div>
 			<Separator />
-			<UserForm user={loaderData.user} actionData={actionData} />
+			<UserForm
+				user={loaderData.user}
+				actionData={actionData}
+				params={params}
+			/>
 		</div>
 	)
 }
@@ -55,7 +62,7 @@ export const handle = {
 export const meta: Route.MetaFunction = ({ data, params }) => {
 	const displayName = data?.user.name ?? params.username
 	return [
-		{ title: `${displayName} | App Administration` },
+		{ title: `${displayName} | Rr App Administration` },
 		{
 			name: 'description',
 			content: `Profile of ${displayName} on App Administration`,

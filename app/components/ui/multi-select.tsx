@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { CheckIcon, ChevronDown, XIcon, WandSparkles } from 'lucide-react'
+import { CheckIcon, ChevronDown, WandSparkles, XIcon } from 'lucide-react'
 import * as React from 'react'
 
 import { Badge } from '@/components/ui/badge'
@@ -32,7 +32,7 @@ const multiSelectVariants = cva('m-0.5', {
 			secondary:
 				'border-foreground/10 bg-secondary text-secondary-foreground hover:bg-secondary/80',
 			destructive:
-				'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
+				'bg-destructive text-destructive-foreground hover:bg-destructive/80 border-transparent',
 			inverted: 'inverted',
 		},
 	},
@@ -120,6 +120,7 @@ function MultiSelect({
 	modalPopover = false,
 	className,
 	label,
+	name,
 	...props
 }: React.ComponentProps<'button'> & MultiSelectProps) {
 	const [selectedValues, setSelectedValues] =
@@ -263,7 +264,7 @@ function MultiSelect({
 						</div>
 					)}
 					{selectedValues.map((value) => (
-						<input key={value} name="roles" value={value} type="hidden" />
+						<input key={value} name={name} value={value} type="hidden" />
 					))}
 				</Button>
 			</PopoverTrigger>

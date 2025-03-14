@@ -30,8 +30,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 						code: z.ZodIssueCode.custom,
 						message: 'User not found',
 					})
+					return
 				}
-				return
 			}
 
 			const existingUsername = await prisma.user.findUnique({
@@ -75,14 +75,20 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 	if (submission.status !== 'success' || !submission.value) {
 		return data(
-			{ result: submission.reply() },
+			{ result: submission.reply(), user: undefined },
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
 	}
 
 	const { id: userId, username, name, email, image } = submission.value
 	const user = await prisma.user.upsert({
-		select: { name: true },
+		select: {
+			id: true,
+			name: true,
+			username: true,
+			email: true,
+			image: { select: { id: true, objectKey: true } },
+		},
 		where: { id: userId },
 		create: {
 			id: userId,
@@ -102,6 +108,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		update: {
 			name,
 			email,
+			username,
 			image: {
 				upsert: {
 					where: { id: image.id },
@@ -119,9 +126,17 @@ export async function action({ request, params }: Route.ActionArgs) {
 		})
 	}
 
+	if (params.username !== user.username) {
+		return redirectWithToast(`/admin/users/${user.username}`, {
+			description: `User ${user.name} updated`,
+			type: 'success',
+		})
+	}
+
 	return data(
 		{
-			result: submission.reply(),
+			result: submission.reply({ resetForm: true }),
+			user,
 		},
 
 		{
