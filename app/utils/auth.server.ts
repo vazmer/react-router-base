@@ -78,6 +78,42 @@ export async function login({
 	return session
 }
 
+export async function signup({
+	email,
+	username,
+	password,
+	name,
+}: {
+	email: User['email']
+	username: User['username']
+	name: User['name']
+	password: string
+}) {
+	const hashedPassword = await getPasswordHash(password)
+
+	const session = await prisma.session.create({
+		data: {
+			expirationDate: getSessionExpirationDate(),
+			user: {
+				create: {
+					email: email.toLowerCase(),
+					username: username.toLowerCase(),
+					name,
+					roles: { connect: { name: 'user' } },
+					password: {
+						create: {
+							hash: hashedPassword,
+						},
+					},
+				},
+			},
+		},
+		select: { id: true, expirationDate: true },
+	})
+
+	return session
+}
+
 export async function resetUserPassword({
 	username,
 	password,

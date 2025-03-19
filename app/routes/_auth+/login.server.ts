@@ -1,6 +1,7 @@
 import { redirect } from 'react-router'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import { sessionKey } from '@/utils/auth.server'
+import { prisma } from '@/utils/db.server.ts'
 import { combineResponseInits } from '@/utils/misc'
 import { authSessionStorage } from '@/utils/session.server'
 
@@ -22,6 +23,15 @@ export async function handleNewSession(
 		request.headers.get('cookie'),
 	)
 	authSession.set(sessionKey, session.id)
+
+	if (!redirectTo) {
+		const isAdminUser = await prisma.user.findUnique({
+			where: { id: session.userId, roles: { some: { name: 'admin' } } },
+		})
+		if (isAdminUser) {
+			redirectTo = '/admin'
+		}
+	}
 
 	return redirect(
 		safeRedirect(redirectTo),
