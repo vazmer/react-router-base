@@ -5,9 +5,10 @@ import {
 	useForm,
 } from '@conform-to/react'
 import { type Prisma } from '@prisma/client'
+import { AccessibleIcon } from '@radix-ui/react-accessible-icon'
 import { type Duration, formatDistanceToNow, intlFormat, sub } from 'date-fns'
 import { type IntlFormatFormatOptions } from 'date-fns/intlFormat'
-import { Plus, SearchIcon } from 'lucide-react'
+import { ArrowDown, ArrowUp, Plus, SearchIcon } from 'lucide-react'
 import React, { useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -23,7 +24,7 @@ import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { PaginationBar } from '@/components/pagination-bar.tsx'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
-import { buttonVariants } from '@/components/ui/button.tsx'
+import { Button, buttonVariants } from '@/components/ui/button.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
 import { MultiSelect } from '@/components/ui/multi-select.tsx'
@@ -63,9 +64,11 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 	const searchTerm = url.searchParams.get('search')?.trim()
 	const selectedRoles = url.searchParams.getAll('roles')
 	const sortBy = url.searchParams.get('sortBy') || 'createdAt'
+	const order: Prisma.SortOrder =
+		(url.searchParams.get('order') as Prisma.SortOrder) || 'desc'
 	const take = Number(url.searchParams.get('take')) || 15
 	const skip = Number(url.searchParams.get('skip')) || 0
-	const createdAtFrom = url.searchParams.get('createdAtFrom') || 'all'
+	const createdAtFrom = url.searchParams.get('createdAt') || 'all'
 
 	let createdAtWhereInput: Prisma.UserWhereInput = {}
 	if (!!createdAtFrom && createdAtFrom !== 'all') {
@@ -125,16 +128,13 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 		],
 	}
 
-	const sortOrder: Prisma.SortOrder = 'desc'
-	const orderBy: Prisma.UserOrderByWithRelationInput[] = [
-		{ createdAt: sortOrder },
-	]
+	const orderBy: Prisma.UserOrderByWithRelationInput[] = [{ createdAt: order }]
 	switch (sortBy) {
 		case 'updatedAt':
 		case 'name':
 		case 'email':
 		case 'username':
-			orderBy.unshift({ [sortBy]: sortOrder })
+			orderBy.unshift({ [sortBy]: order })
 			break
 		default:
 			break
@@ -206,15 +206,15 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 	} as const
 }
 
-export default function Users() {
+export default function UsersRoute() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
-				<div className="flex flex-1 items-center justify-between space-x-2">
+				<div className="flex flex-1 justify-between space-x-2">
 					<UserFiltersForm />
 					<Link
 						to="/admin/users/new"
-						className={cn(buttonVariants(), { size: '8' })}
+						className={cn(buttonVariants(), 'self-start')}
 						prefetch="intent"
 					>
 						<Plus />
@@ -256,6 +256,8 @@ function UserFiltersForm() {
 	}, 400)
 
 	const { t } = useTranslation()
+
+	const nextOrder = searchParams.get('order') === 'desc' ? 'asc' : 'desc'
 
 	return (
 		<Form
@@ -316,28 +318,58 @@ function UserFiltersForm() {
 					<SelectItem value="lastYear">{t('users.lastYear')}</SelectItem>
 				</SelectContent>
 			</Select>
-			<Select
-				name="sortBy"
-				defaultValue={searchParams.get('sortBy') || 'createdAt'}
-			>
-				<SelectTrigger className="items-start">
-					<span className="text-muted-foreground">{t('users.sortBy')}:</span>
-					<SelectValue />
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="name">{t('users.sortBy.name')}</SelectItem>
-					<SelectItem value="email">{t('users.sortBy.email')}</SelectItem>
-					<SelectItem value="session">
-						{t('users.sortBy.sessionCount')}
-					</SelectItem>
-					<SelectItem value="createdAt">
-						{t('users.sortBy.createdAt')}
-					</SelectItem>
-					<SelectItem value="updatedAt">
-						{t('users.sortBy.updatedAt')}
-					</SelectItem>
-				</SelectContent>
-			</Select>
+
+			<div className="flex gap-1">
+				<Select
+					name="sortBy"
+					defaultValue={searchParams.get('sortBy') || 'createdAt'}
+				>
+					<SelectTrigger className="items-start">
+						<span className="text-muted-foreground">{t('users.sortBy')}:</span>
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="name">{t('users.sortBy.name')}</SelectItem>
+						<SelectItem value="email">{t('users.sortBy.email')}</SelectItem>
+						<SelectItem value="session">
+							{t('users.sortBy.sessionCount')}
+						</SelectItem>
+						<SelectItem value="createdAt">
+							{t('users.sortBy.createdAt')}
+						</SelectItem>
+						<SelectItem value="updatedAt">
+							{t('users.sortBy.updatedAt')}
+						</SelectItem>
+					</SelectContent>
+				</Select>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							type="button"
+							name="order"
+							value={nextOrder}
+							size="icon"
+							onClick={() => {
+								form.update()
+							}}
+						>
+							<AccessibleIcon label="Sort order">
+								{searchParams.get('order') === 'desc' ? (
+									<ArrowDown />
+								) : (
+									<ArrowUp />
+								)}
+							</AccessibleIcon>
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>
+						Sort order:{' '}
+						{searchParams.get('order') === 'desc' ? 'Descending' : 'Ascending'}
+					</TooltipContent>
+				</Tooltip>
+			</div>
+
 			{/*{loaderData.status === 'idle' && (*/}
 			{/*	<StatusButton*/}
 			{/*		type="submit"*/}
@@ -377,29 +409,28 @@ function UsersTable() {
 				<TableBody>
 					{users.map((user) => (
 						<TableRow key={user.id}>
-							<TableCell>
+							<TableCell className="flex">
 								<Tooltip delayDuration={400}>
-									<TooltipTrigger>
+									<TooltipTrigger asChild>
 										<Link
 											to={`/admin/users/${user.username}`}
-											className="flex items-center gap-3 font-semibold"
+											className="flex flex-shrink items-center gap-3"
 											viewTransition
 										>
 											<Avatar
-												className="bg-muted ring-ring size-8 rounded-r-full ring-1 max-sm:hidden"
+												className="bg-muted ring-ring ring-1 max-sm:hidden"
 												aria-hidden={true}
 											>
 												<AvatarImage
 													src={getUserImgSrc(user.image?.objectKey)}
 													alt={user.name || user.username}
 												/>
-												<AvatarFallback className="rounded-lg">
+												<AvatarFallback>
 													{getInitials(`${user.name} ${user.username}`)}
 												</AvatarFallback>
 											</Avatar>
-											<div className="grid flex-1 text-left text-sm leading-tight">
-												<span className="">{user.name}</span>
-
+											<div className="flex flex-col text-left text-sm leading-tight">
+												<span className="font-semibold">{user.name}</span>
 												<span className="text-muted-foreground truncate text-xs">
 													{user.email}
 												</span>

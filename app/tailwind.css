@@ -149,3 +149,29 @@ body {
 		@apply bg-background text-foreground;
 	}
 }
+
+/**
+  * https://github.com/radix-ui/primitives/issues/1749#issuecomment-2407815187
+  * Note: this is needed to prevent the popover from being cut off
+  * by the viewport when the popover is nested inside another popover
+  */
+div[data-radix-popper-content-wrapper],
+	div[data-radix-popper-content-wrapper]:has(> div[data-side='right']) {
+	left: calc(
+		min(
+			0px,
+			var(--radix-popper-available-width) +
+				(-1 * var(--radix-popper-anchor-width))
+		)
+	) !important;
+}
+div[data-radix-popper-content-wrapper],
+	div[data-radix-popper-content-wrapper]:has(> div[data-side='left']) {
+	left: calc(
+		max(
+			0px,
+			(-1 * var(--radix-popper-available-width)) +
+				var(--radix-popper-anchor-width)
+		)
+	) !important;
+}

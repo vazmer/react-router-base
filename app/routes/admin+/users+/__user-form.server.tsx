@@ -4,19 +4,17 @@ import { createId as cuid } from '@paralleldrive/cuid2'
 import { data } from 'react-router'
 import { z } from 'zod'
 import { type Route } from './+types/$username.ts'
-import { MAX_UPLOAD_SIZE, UserFormSchema } from './__user-form'
+import { UserFormSchema } from './__user-form'
 import { getPasswordHash } from '@/utils/auth.server.ts'
 import { prisma } from '@/utils/db.server.ts'
-import { checkHoneypot } from '@/utils/honeypot.server.ts'
 import { uploadProfileImage } from '@/utils/storage.server.ts'
 import { createToastHeaders, redirectWithToast } from '@/utils/toast.server.ts'
+import { MAX_UPLOAD_SIZE } from '@/utils/user-validation.ts'
 
 export async function action({ request, params }: Route.ActionArgs) {
 	const formData = await parseFormData(request, {
 		maxFileSize: MAX_UPLOAD_SIZE,
 	})
-	await checkHoneypot(formData)
-
 	const submission = await parseWithZod(formData, {
 		schema: UserFormSchema.superRefine(async ({ id, username, email }, ctx) => {
 			if (id) {
@@ -80,13 +78,14 @@ export async function action({ request, params }: Route.ActionArgs) {
 		)
 	}
 
-	const { id: userId, username, name, email, image } = submission.value
+	const { id: userId, username, name, email, image, roles } = submission.value
 	const user = await prisma.user.upsert({
 		select: {
 			id: true,
 			name: true,
 			username: true,
 			email: true,
+			roles: { select: { id: true, name: true } },
 			image: { select: { id: true, objectKey: true } },
 		},
 		where: { id: userId },
@@ -100,7 +99,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 					hash: await getPasswordHash(username),
 				},
 			},
-			roles: { connect: [{ name: 'user' }] },
+			roles: {
+				connect: [
+					...roles.map((roleName) => ({
+						name: roleName,
+					})),
+				],
+			},
 			image: image.objectKey
 				? { create: { id: image.id, objectKey: image.objectKey } }
 				: undefined,
@@ -109,6 +114,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 			name,
 			email,
 			username,
+			roles: {
+				set: [
+					...roles.map((roleName) => ({
+						name: roleName,
+					})),
+				],
+			},
 			image: {
 				upsert: {
 					where: { id: image.id },

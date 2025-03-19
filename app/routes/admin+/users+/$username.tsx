@@ -15,19 +15,19 @@ export async function loader({ params }: Route.LoaderArgs) {
 			name: true,
 			username: true,
 			email: true,
+			roles: { select: { id: true, name: true } },
 			image: { select: { id: true, objectKey: true } },
 		},
 		where: {
 			username: params.username,
 		},
 	})
-
 	invariantResponse(user, 'User not found', { status: 404 })
 
 	return { user }
 }
 
-export default function User({
+export default function UserRoute({
 	loaderData,
 	actionData,
 	params,

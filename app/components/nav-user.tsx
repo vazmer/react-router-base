@@ -73,7 +73,7 @@ export function NavUser() {
 							<Button
 								type="submit"
 								variant="ghost"
-								className="h-full w-full justify-start p-0"
+								className="size-full justify-start p-0"
 							>
 								<DropdownMenuItem className="w-full">
 									<LogOut />
