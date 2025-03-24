@@ -11,6 +11,7 @@
 	"sidebar": {
 		"administration": "Administration",
 		"users": "Users",
+		"editProfile": "Edit profile",
 		"logout": "Logout"
 	},
 	"breadcrumbs": {

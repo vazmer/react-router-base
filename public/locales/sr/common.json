@@ -6,6 +6,7 @@
 	"sidebar": {
 		"administration": "Администрација",
 		"users": "Корисници",
+		"editProfile": "Измени профил",
 		"logout": "Одјави се"
 	},
 	"breadcrumbs": {
@@ -21,8 +22,8 @@
 		"sortBy.name": "Имену",
 		"sortBy.email": "Имејлу",
 		"sortBy.sessionCount": "Броју сесија",
-		"sortBy.createdAt": "Датуму креирања",
-		"sortBy.updatedAt": "Датуму ажурирања",
+		"sortBy.createdAt": "Времену креирања",
+		"sortBy.updatedAt": "Времену измене",
 		"name": "Име",
 		"email": "Мејл",
 		"sessionCount": "Број сесија",
