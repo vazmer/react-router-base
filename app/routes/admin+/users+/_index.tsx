@@ -320,31 +320,27 @@ function UserFiltersForm() {
 					{...getInputProps(fields.search, { type: 'search' })}
 				/>
 			</div>
-			<Tooltip>
-				<TooltipTrigger>
-					<Select
-						{...getSelectProps(fields.dateFrom)}
-						defaultValue={fields.dateFrom.initialValue}
-					>
+			<Select
+				{...getSelectProps(fields.dateFrom)}
+				defaultValue={fields.dateFrom.initialValue}
+			>
+				<Tooltip>
+					<TooltipTrigger>
 						<SelectTrigger className="items-start">
 							<SelectValue />
 						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="anytime">{t('users.anytime')}</SelectItem>
-							<SelectItem value="lastDay">{t('users.lastDay')}</SelectItem>
-							<SelectItem value="last7Days">{t('users.last7Days')}</SelectItem>
-							<SelectItem value="last30Days">
-								{t('users.last30Days')}
-							</SelectItem>
-							<SelectItem value="lastQuarter">
-								{t('users.lastQuarter')}
-							</SelectItem>
-							<SelectItem value="lastYear">{t('users.lastYear')}</SelectItem>
-						</SelectContent>
-					</Select>
-				</TooltipTrigger>
-				<TooltipContent>Updated or created date</TooltipContent>
-			</Tooltip>
+					</TooltipTrigger>
+					<TooltipContent>Updated or created date</TooltipContent>
+				</Tooltip>
+				<SelectContent>
+					<SelectItem value="anytime">{t('users.anytime')}</SelectItem>
+					<SelectItem value="lastDay">{t('users.lastDay')}</SelectItem>
+					<SelectItem value="last7Days">{t('users.last7Days')}</SelectItem>
+					<SelectItem value="last30Days">{t('users.last30Days')}</SelectItem>
+					<SelectItem value="lastQuarter">{t('users.lastQuarter')}</SelectItem>
+					<SelectItem value="lastYear">{t('users.lastYear')}</SelectItem>
+				</SelectContent>
+			</Select>
 			<MultiSelect
 				name="roles"
 				// label={`${t('users.roles')}:`}
