@@ -18,7 +18,7 @@ export default function Index() {
 			<div className="container flex w-full flex-col items-center gap-10 p-8">
 				<h1 className="inline-flex items-center gap-6 text-6xl font-bold max-sm:gap-4 max-sm:text-4xl">
 					<Construction className="size-14" aria-hidden />
-					Under construction
+					Under Construction
 				</h1>
 				<div className="text-muted-foreground text-center">
 					<div className="flex flex-col gap-4">
