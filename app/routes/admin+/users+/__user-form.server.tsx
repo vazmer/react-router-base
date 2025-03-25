@@ -5,7 +5,7 @@ import { data } from 'react-router'
 import { z } from 'zod'
 import { type Route } from './+types/$username.ts'
 import { UserFormSchema } from './__user-form'
-import { getPasswordHash } from '@/utils/auth.server.ts'
+import { checkIsCommonPassword, getPasswordHash } from '@/utils/auth.server.ts'
 import { prisma } from '@/utils/db.server.ts'
 import { uploadProfileImage } from '@/utils/storage.server.ts'
 import { createToastHeaders, redirectWithToast } from '@/utils/toast.server.ts'
@@ -16,46 +16,59 @@ export async function action({ request, params }: Route.ActionArgs) {
 		maxFileSize: MAX_UPLOAD_SIZE,
 	})
 	const submission = await parseWithZod(formData, {
-		schema: UserFormSchema.superRefine(async ({ id, username, email }, ctx) => {
-			if (id) {
-				const user = await prisma.user.findUnique({
-					select: { id: true },
-					where: { id },
-				})
-
-				if (!user) {
-					ctx.addIssue({
-						code: z.ZodIssueCode.custom,
-						message: 'User not found',
+		schema: UserFormSchema.superRefine(
+			async ({ id, username, email, password }, ctx) => {
+				if (id) {
+					const user = await prisma.user.findUnique({
+						select: { id: true },
+						where: { id },
 					})
-					return
+
+					if (!user) {
+						ctx.addIssue({
+							code: z.ZodIssueCode.custom,
+							message: 'User not found',
+						})
+						return
+					}
 				}
-			}
 
-			const existingUsername = await prisma.user.findUnique({
-				select: { id: true },
-				where: { username },
-			})
-			if (existingUsername && existingUsername.id !== id) {
-				ctx.addIssue({
-					path: ['username'],
-					code: z.ZodIssueCode.custom,
-					message: 'A user already exists with this username',
+				const existingUsername = await prisma.user.findUnique({
+					select: { id: true },
+					where: { username },
 				})
-			}
+				if (existingUsername && existingUsername.id !== id) {
+					ctx.addIssue({
+						path: ['username'],
+						code: z.ZodIssueCode.custom,
+						message: 'A user already exists with this username',
+					})
+				}
 
-			const existingEmail = await prisma.user.findUnique({
-				select: { id: true },
-				where: { email },
-			})
-			if (existingEmail && existingEmail.id !== id) {
-				ctx.addIssue({
-					path: ['email'],
-					code: z.ZodIssueCode.custom,
-					message: 'A user already exists with this email',
+				const existingEmail = await prisma.user.findUnique({
+					select: { id: true },
+					where: { email },
 				})
-			}
-		}).transform(async ({ image = {}, ...data }) => {
+				if (existingEmail && existingEmail.id !== id) {
+					ctx.addIssue({
+						path: ['email'],
+						code: z.ZodIssueCode.custom,
+						message: 'A user already exists with this email',
+					})
+				}
+
+				if (password) {
+					const isCommonPassword = await checkIsCommonPassword(password)
+					if (isCommonPassword) {
+						ctx.addIssue({
+							path: ['password'],
+							code: 'custom',
+							message: 'Password is too common',
+						})
+					}
+				}
+			},
+		).transform(async ({ image = {}, ...data }) => {
 			const userId = data.id ?? cuid()
 			return {
 				...data,
@@ -78,7 +91,15 @@ export async function action({ request, params }: Route.ActionArgs) {
 		)
 	}
 
-	const { id: userId, username, name, email, image, roles } = submission.value
+	const {
+		id: userId,
+		username,
+		name,
+		email,
+		image,
+		roles,
+		password,
+	} = submission.value
 	const user = await prisma.user.upsert({
 		select: {
 			id: true,
@@ -94,11 +115,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 			username,
 			email,
 			name,
-			password: {
-				create: {
-					hash: await getPasswordHash(username),
-				},
-			},
+			password: password
+				? {
+						create: {
+							hash: await getPasswordHash(password),
+						},
+					}
+				: undefined,
 			roles: {
 				connect: [
 					...roles.map((roleName) => ({
@@ -114,6 +137,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 			name,
 			email,
 			username,
+			password: password
+				? {
+						update: {
+							hash: await getPasswordHash(password),
+						},
+					}
+				: undefined,
 			roles: {
 				set: [
 					...roles.map((roleName) => ({

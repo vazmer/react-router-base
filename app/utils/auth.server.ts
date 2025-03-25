@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import { type Password, type User } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { redirect } from 'react-router'
@@ -186,4 +187,40 @@ export async function verifyUserPassword(
 	}
 
 	return { id: userWithPassword.id }
+}
+
+export function getPasswordHashParts(password: string) {
+	const hash = crypto
+		.createHash('sha1')
+		.update(password, 'utf8')
+		.digest('hex')
+		.toUpperCase()
+	return [hash.slice(0, 5), hash.slice(5)] as const
+}
+
+export async function checkIsCommonPassword(password: string) {
+	const [prefix, suffix] = getPasswordHashParts(password)
+
+	try {
+		const response = await fetch(
+			`https://api.pwnedpasswords.com/range/${prefix}`,
+			{ signal: AbortSignal.timeout(1000) },
+		)
+
+		if (!response.ok) return false
+
+		const data = await response.text()
+		return data.split(/\r?\n/).some((line) => {
+			const [hashSuffix] = line.split(':')
+			return hashSuffix === suffix
+		})
+	} catch (error) {
+		if (error instanceof DOMException && error.name === 'TimeoutError') {
+			console.warn('Password check timed out')
+			return false
+		}
+
+		console.warn('Unknown error during password check', error)
+		return false
+	}
 }

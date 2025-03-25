@@ -23,18 +23,26 @@ import {
 	EmailSchema,
 	ImageFieldsetSchema,
 	NameSchema,
+	PasswordAndConfirmPasswordSchema,
+	passwordAndConfirmRefine,
 	RolesSchema,
 	UsernameSchema,
 } from '@/utils/user-validation.ts'
 
-export const UserFormSchema = z.object({
-	id: z.string().optional(),
-	name: NameSchema,
-	username: UsernameSchema,
-	roles: RolesSchema,
-	email: EmailSchema,
-	image: ImageFieldsetSchema,
-})
+export const UserFormSchema = z
+	.object({
+		id: z.string().optional(),
+		name: NameSchema,
+		username: UsernameSchema,
+		email: EmailSchema,
+		image: ImageFieldsetSchema,
+		roles: RolesSchema,
+	})
+	.and(
+		PasswordAndConfirmPasswordSchema.partial().superRefine(
+			passwordAndConfirmRefine,
+		),
+	)
 
 function UserForm({
 	params,
@@ -72,7 +80,7 @@ function UserForm({
 		},
 		defaultValue: { ...defaultValue },
 		shouldDirtyConsider(fieldName) {
-			return !['image'].includes(fieldName)
+			return fieldName === 'image'
 		},
 		shouldRevalidate: 'onInput',
 	})
@@ -163,6 +171,30 @@ function UserForm({
 							autoComplete: 'username',
 						}}
 						errors={fields.username.errors}
+					/>
+					<Field
+						className="grid gap-2"
+						labelProps={{ children: 'Password' }}
+						inputProps={{
+							...getInputProps(fields.password, {
+								type: 'password',
+								key: fields.password.key,
+							}),
+							autoComplete: 'new-password',
+						}}
+						errors={fields.password.errors}
+					/>
+					<Field
+						className="grid gap-2"
+						labelProps={{ children: 'Confirm password' }}
+						inputProps={{
+							...getInputProps(fields.confirmPassword, {
+								type: 'password',
+								key: fields.confirmPassword.key,
+								autoComplete: 'new-password',
+							}),
+						}}
+						errors={fields.confirmPassword.errors}
 					/>
 					{/*<div className="flex gap-2">*/}
 					<StatusButton

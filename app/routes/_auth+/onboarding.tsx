@@ -8,7 +8,11 @@ import { type Route } from './+types/onboarding'
 import { CheckboxField, ErrorList, Field } from '@/components/forms.tsx'
 import { StatusButton } from '@/components/ui/status-button.tsx'
 import { AuthCard } from '@/routes/_auth+/__auth-card.tsx'
-import { sessionKey, signup } from '@/utils/auth.server.ts'
+import {
+	checkIsCommonPassword,
+	sessionKey,
+	signup,
+} from '@/utils/auth.server.ts'
 import { prisma } from '@/utils/db.server.ts'
 import { checkHoneypot } from '@/utils/honeypot.server'
 import { useIsPending } from '@/utils/misc'
@@ -17,6 +21,7 @@ import { redirectWithToast } from '@/utils/toast.server.ts'
 import {
 	NameSchema,
 	PasswordAndConfirmPasswordSchema,
+	passwordAndConfirmRefine,
 	UsernameSchema,
 } from '@/utils/user-validation.ts'
 import { verifySessionStorage } from '@/utils/verification.server.ts'
@@ -30,7 +35,7 @@ const SignupFormSchema = z
 		remember: z.boolean().optional(),
 		redirectTo: z.string().optional(),
 	})
-	.and(PasswordAndConfirmPasswordSchema)
+	.and(PasswordAndConfirmPasswordSchema.superRefine(passwordAndConfirmRefine))
 
 async function requireOnboardingEmail(request: Request) {
 	const verifySession = await verifySessionStorage.getSession(
@@ -67,14 +72,14 @@ export async function action({ request }: Route.ActionArgs) {
 					})
 					return
 				}
-				// const isCommonPassword = await checkIsCommonPassword(data.password)
-				// if (isCommonPassword) {
-				// 	ctx.addIssue({
-				// 		path: ['password'],
-				// 		code: 'custom',
-				// 		message: 'Password is too common',
-				// 	})
-				// }
+				const isCommonPassword = await checkIsCommonPassword(data.password)
+				if (isCommonPassword) {
+					ctx.addIssue({
+						path: ['password'],
+						code: 'custom',
+						message: 'Password is too common',
+					})
+				}
 			}).transform(async (data) => {
 				if (intent !== null) return { ...data, session: null }
 
