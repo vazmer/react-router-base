@@ -118,8 +118,8 @@ export const handle = {
 
 export const meta: Route.MetaFunction = ({ data }) => {
 	return [
-		{ title: data ? 'Rr App' : 'Error | Rr App' },
-		{ name: 'description', content: `Your own captain's log` },
+		{ title: data ? ENV.APP_NAME : `Error | ${ENV.APP_NAME}` },
+		{ name: 'description', content: `React router app` },
 	]
 }
 
@@ -151,7 +151,7 @@ function Document({
 				)}
 				<Links />
 			</head>
-			<body className="bg-background text-foreground">
+			<body className="bg-background text-foreground h-full">
 				{children}
 				<script
 					nonce={nonce}

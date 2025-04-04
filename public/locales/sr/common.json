@@ -1,45 +1,46 @@
 {
-  "root": {
-    "en": "Енглески",
-    "sr": "Српски"
-  },
-  "sidebar": {
-    "administration": "Администрација",
-    "users": "Корисници",
-    "logout": "Одјави се"
-  },
-  "breadcrumbs": {
-    "home": "Почетна",
-    "users": "Корисници",
-    "newUser": "Нови корисник"
-  },
-  "users": {
-    "roles": "Улоге",
-    "allRoles": "Све улоге",
-    "createdAtFrom": "Направљен",
-    "sortBy": "Сортирај по",
-    "sortBy.name": "Имену",
-    "sortBy.email": "Имејлу",
-    "sortBy.sessionCount": "Броју сесија",
-    "sortBy.createdAt": "Датуму креирања",
-    "sortBy.updatedAt": "Датуму ажурирања",
-    "name": "Име",
-    "email": "Мејл",
-    "sessionCount": "Број сесија",
-    "sessions": "Број сесија",
-    "createdAt": "Направљен",
-    "updatedAt": "Ажуриран",
-    "anytime": "Било када",
-    "lastDay": "Претходна 24 сата",
-    "last7Days": "Претходних 7 дана",
-    "last30Days": "Претходних месец дана",
-    "lastQuarter": "Претходна 3 месеца",
-    "lastYear": "Претходне године"
-  },
-  "Search...": "Претрага...",
-  "table": {
-    "usersCountSummary_singlePage_one": "Приказује се {{count}} корисник",
-    "usersCountSummary_singlePage_other": "Приказује се {{count}} корисника",
-    "usersCountSummary_multiplePages": "Приказује се {{from}}-{{to}} од {{count}} корисника"
-  }
+	"root": {
+		"en": "Енглески",
+		"sr": "Српски"
+	},
+	"sidebar": {
+		"administration": "Администрација",
+		"users": "Корисници",
+		"editProfile": "Измени профил",
+		"logout": "Одјави се"
+	},
+	"breadcrumbs": {
+		"home": "Почетна",
+		"users": "Корисници",
+		"newUser": "Нови корисник"
+	},
+	"users": {
+		"roles": "Улоге",
+		"allRoles": "Све улоге",
+		"createdAtFrom": "Направљен",
+		"sortBy": "Сортирај по",
+		"sortBy.name": "Имену",
+		"sortBy.email": "Имејлу",
+		"sortBy.sessionCount": "Броју сесија",
+		"sortBy.createdAt": "Времену креирања",
+		"sortBy.updatedAt": "Времену измене",
+		"name": "Име",
+		"email": "Мејл",
+		"sessionCount": "Број сесија",
+		"sessions": "Број сесија",
+		"createdAt": "Направљен",
+		"updatedAt": "Измењен",
+		"anytime": "Било када",
+		"lastDay": "Претходна 24 сата",
+		"last7Days": "Претходних 7 дана",
+		"last30Days": "Претходних месец дана",
+		"lastQuarter": "Претходна 3 месеца",
+		"lastYear": "Претходне године"
+	},
+	"Search...": "Претрага...",
+	"table": {
+		"usersCountSummary_singlePage": "Приказују се {{count}} корисника",
+		"usersCountSummary_singlePage_one": "Приказују се {{count}} корисник",
+		"usersCountSummary_multiplePages": "Приказује се {{from}}-{{to}} од {{count}} корисника"
+	}
 }

@@ -1,3 +1,4 @@
+import { Contact } from 'lucide-react'
 import * as React from 'react'
 
 import { useTranslation } from 'react-i18next'
@@ -23,8 +24,9 @@ const data = {
 			title: 'sidebar.administration',
 			items: [
 				{
-					title: 'sidebar.users',
 					url: '/admin/users',
+					title: 'sidebar.users',
+					icon: <Contact />,
 				},
 			],
 		},
@@ -44,13 +46,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 						<SidebarGroupLabel>{t(title)}</SidebarGroupLabel>
 						<SidebarGroupContent>
 							<SidebarMenu>
-								{items.map(({ url, title: itemTitle }) => (
+								{items.map(({ url, title: itemTitle, icon }) => (
 									<SidebarMenuItem key={itemTitle}>
 										<SidebarMenuButton
 											asChild
 											isActive={pathnames.includes(location.pathname)}
 										>
-											<NavLink to={url}>{t(itemTitle)}</NavLink>
+											<NavLink to={url}>
+												{icon}
+												{t(itemTitle)}
+											</NavLink>
 										</SidebarMenuButton>
 									</SidebarMenuItem>
 								))}

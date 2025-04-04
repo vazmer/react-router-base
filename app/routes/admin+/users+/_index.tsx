@@ -4,26 +4,22 @@ import {
 	getSelectProps,
 	useForm,
 } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type Prisma } from '@prisma/client'
+import { AccessibleIcon } from '@radix-ui/react-accessible-icon'
 import { type Duration, formatDistanceToNow, intlFormat, sub } from 'date-fns'
 import { type IntlFormatFormatOptions } from 'date-fns/intlFormat'
-import { Plus, SearchIcon } from 'lucide-react'
-import React, { useId, useRef } from 'react'
+import { ArrowDown, ArrowUp, Plus, SearchIcon } from 'lucide-react'
+import React, { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-	Form,
-	Link,
-	useLoaderData,
-	useSearchParams,
-	useSubmit,
-} from 'react-router'
+import { data, Form, Link, useLoaderData, useSubmit } from 'react-router'
 import { z } from 'zod'
 import { type Route } from './+types/_index'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { PaginationBar } from '@/components/pagination-bar.tsx'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
-import { buttonVariants } from '@/components/ui/button.tsx'
+import { Button, buttonVariants } from '@/components/ui/button.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
 import { MultiSelect } from '@/components/ui/multi-select.tsx'
@@ -53,52 +49,104 @@ import { prisma } from '@/utils/db.server.ts'
 import { getDateFnsLocale } from '@/utils/i18next.server.ts'
 import { getInitials, getUserImgSrc, useDebounce } from '@/utils/misc.tsx'
 
-export const FilterSchema = z.object({
-	status: z.string(),
-	author: z.string(),
+const PaginationSchema = z.object({
+	skip: z.number().default(0),
+	take: z.number().default(15),
 })
+
+const FilterSchema = z.object({
+	search: z.string().optional(),
+	roles: z
+		.array(z.enum(['admin', 'user']))
+		.optional()
+		.transform((roles) => (roles?.length === 2 ? [] : roles))
+		.default([]),
+	dateFrom: z
+		.enum([
+			'anytime',
+			'lastDay',
+			'last7Days',
+			'last30Days',
+			'lastQuarter',
+			'lastYear',
+		])
+		.default('anytime'),
+})
+
+const SortSchema = z.object({
+	sortBy: z
+		.enum([
+			'name',
+			'email',
+			'username',
+			'date',
+			'updatedAt',
+			'createdAt',
+			'session',
+		])
+		.default('date'),
+	order: z.enum(['asc', 'desc']).default('asc'),
+})
+
+const UsersSchema = PaginationSchema.merge(FilterSchema).merge(SortSchema)
 
 export const loader = async ({ request }: Route.LoaderArgs) => {
 	const url = new URL(request.url)
-	const searchTerm = url.searchParams.get('search')?.trim()
-	const selectedRoles = url.searchParams.getAll('roles')
-	const sortBy = url.searchParams.get('sortBy') || 'createdAt'
-	const take = Number(url.searchParams.get('take')) || 15
-	const skip = Number(url.searchParams.get('skip')) || 0
-	const createdAtFrom = url.searchParams.get('createdAtFrom') || 'all'
+	const submission = parseWithZod(url.searchParams, {
+		schema: UsersSchema,
+	})
 
-	let createdAtWhereInput: Prisma.UserWhereInput = {}
-	if (!!createdAtFrom && createdAtFrom !== 'all') {
-		let createdAtFromSub: Duration = {}
-		switch (createdAtFrom) {
+	if (submission.status !== 'success') {
+		throw new Error(
+			'This will never fail if all fields are optional or defaulted.',
+			{
+				cause: submission.error,
+			},
+		)
+	}
+
+	const {
+		search: searchTerm,
+		roles: selectedRoles,
+		order,
+		dateFrom,
+		sortBy,
+		take,
+		skip,
+	} = submission.value
+
+	let dateWhereInput: Prisma.UserWhereInput = {}
+	if (!!dateFrom && dateFrom !== 'anytime') {
+		let dateFromSub: Duration = {}
+		switch (dateFrom) {
 			case 'lastDay':
-				createdAtFromSub = { days: 1 }
+				dateFromSub = { days: 1 }
 				break
 			case 'last7Days':
-				createdAtFromSub = { days: 7 }
+				dateFromSub = { days: 7 }
 				break
 			case 'last30Days':
-				createdAtFromSub = { months: 1 }
+				dateFromSub = { months: 1 }
 				break
 			case 'lastQuarter':
-				createdAtFromSub = { months: 3 }
+				dateFromSub = { months: 3 }
 				break
 			case 'lastYear':
-				createdAtFromSub = { years: 1 }
+				dateFromSub = { years: 1 }
 				break
 			default:
 				break
 		}
-		createdAtWhereInput = {
-			createdAt: {
-				gte: sub(new Date(), createdAtFromSub),
+		dateWhereInput = {
+			updatedAt: {
+				gte: sub(new Date(), dateFromSub),
 			},
 		}
 	}
 
 	const whereInput: Prisma.UserWhereInput = {
 		AND: [
-			createdAtWhereInput,
+			dateWhereInput,
 			{
 				roles: selectedRoles.length
 					? {
@@ -125,16 +173,13 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 		],
 	}
 
-	const sortOrder: Prisma.SortOrder = 'desc'
-	const orderBy: Prisma.UserOrderByWithRelationInput[] = [
-		{ createdAt: sortOrder },
-	]
+	const orderBy: Prisma.UserOrderByWithRelationInput[] = [{ updatedAt: order }]
 	switch (sortBy) {
-		case 'updatedAt':
+		case 'createdAt':
 		case 'name':
 		case 'email':
 		case 'username':
-			orderBy.unshift({ [sortBy]: sortOrder })
+			orderBy.unshift({ [sortBy]: order })
 			break
 		default:
 			break
@@ -173,13 +218,14 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 		minute: 'numeric',
 	}
 
-	return {
+	return data({
+		result: submission.reply(),
+		formData: submission.value,
 		status: 'idle',
 		roles,
-		selectedRoles,
 		users: users.map((user) => ({
 			...user,
-			createdAt: {
+			date: {
 				distanceToNow: formatDistanceToNow(user.createdAt, {
 					locale: localeDateFnsNs,
 					addSuffix: true,
@@ -198,23 +244,19 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 				}),
 			},
 		})),
-		pagination: {
-			take,
-			skip,
-			total: totalUsers,
-		},
-	} as const
+		totalUsers,
+	})
 }
 
-export default function Users() {
+export default function UsersRoute() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
-				<div className="flex flex-1 items-center justify-between space-x-2">
+				<div className="flex flex-1 justify-between space-x-2">
 					<UserFiltersForm />
 					<Link
 						to="/admin/users/new"
-						className={cn(buttonVariants(), { size: '8' })}
+						className={cn(buttonVariants(), 'self-start')}
 						prefetch="intent"
 					>
 						<Plus />
@@ -228,26 +270,15 @@ export default function Users() {
 }
 
 function UserFiltersForm() {
-	const { roles } = useLoaderData<typeof loader>()
-	// const location = useLocation()
-	const [searchParams] = useSearchParams()
+	const { roles, formData } = useLoaderData<typeof loader>()
 	const submit = useSubmit()
 	const formRef = useRef<HTMLFormElement>(null)
-	const selectedRoles = searchParams
-		.getAll('roles')
-		.filter((paramRole) => roles.map((role) => role.name).includes(paramRole))
-
-	const id = useId()
-	// const isSubmitting = useIsPending({
-	// 	formMethod: 'GET',
-	// 	formAction: location.pathname,
-	// })
 
 	const [form, fields] = useForm({
-		id: 'login-form',
+		id: 'users-table-form',
+		constraint: getZodConstraint(UsersSchema),
 		defaultValue: {
-			search: searchParams.get('search') ?? '',
-			createdAtFrom: searchParams.get('createdAtFrom') || 'all',
+			...formData,
 		},
 	})
 
@@ -256,6 +287,15 @@ function UserFiltersForm() {
 	}, 400)
 
 	const { t } = useTranslation()
+
+	const nextOrder = fields.order.value === 'desc' ? 'asc' : 'desc'
+
+	const [order, setOrder] = useState(formData.order)
+	const selectedRolesMemoized = useMemo(() => {
+		return formData.roles && typeof formData.roles === 'string'
+			? [formData.roles]
+			: formData.roles || []
+	}, [formData.roles])
 
 	return (
 		<Form
@@ -270,7 +310,7 @@ function UserFiltersForm() {
 				<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 					<SearchIcon className="size-4 text-gray-500 dark:text-gray-400" />
 				</div>
-				<Label htmlFor={id} className="sr-only">
+				<Label htmlFor={fields.search.id} className="sr-only">
 					{t('search')}
 				</Label>
 				<Input
@@ -278,37 +318,17 @@ function UserFiltersForm() {
 					className="w-full pl-8 text-sm"
 					autoFocus
 					{...getInputProps(fields.search, { type: 'search' })}
-					id={id}
 				/>
 			</div>
-			<MultiSelect
-				name="roles"
-				label={`${t('users.roles')}:`}
-				variant="secondary"
-				className="max-w-[250px] min-w-[150px]"
-				options={roles.map((role) => ({
-					value: role.name,
-					label: role.name,
-				}))}
-				onValueChange={() => handleFormChange()}
-				defaultValue={
-					selectedRoles.length === roles.length ? [] : selectedRoles
-				}
-				placeholder={t('users.allRoles')}
-				maxCount={3}
-			/>
 			<Select
-				{...getSelectProps(fields.createdAtFrom)}
-				defaultValue={fields.createdAtFrom.initialValue}
+				{...getSelectProps(fields.dateFrom)}
+				defaultValue={fields.dateFrom.initialValue}
 			>
 				<SelectTrigger className="items-start">
-					<span className="text-muted-foreground">
-						{t('users.createdAtFrom')}:
-					</span>
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>
-					<SelectItem value="all">{t('users.anytime')}</SelectItem>
+					<SelectItem value="anytime">{t('users.anytime')}</SelectItem>
 					<SelectItem value="lastDay">{t('users.lastDay')}</SelectItem>
 					<SelectItem value="last7Days">{t('users.last7Days')}</SelectItem>
 					<SelectItem value="last30Days">{t('users.last30Days')}</SelectItem>
@@ -316,28 +336,67 @@ function UserFiltersForm() {
 					<SelectItem value="lastYear">{t('users.lastYear')}</SelectItem>
 				</SelectContent>
 			</Select>
-			<Select
-				name="sortBy"
-				defaultValue={searchParams.get('sortBy') || 'createdAt'}
-			>
-				<SelectTrigger className="items-start">
-					<span className="text-muted-foreground">{t('users.sortBy')}:</span>
-					<SelectValue />
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="name">{t('users.sortBy.name')}</SelectItem>
-					<SelectItem value="email">{t('users.sortBy.email')}</SelectItem>
-					<SelectItem value="session">
-						{t('users.sortBy.sessionCount')}
-					</SelectItem>
-					<SelectItem value="createdAt">
-						{t('users.sortBy.createdAt')}
-					</SelectItem>
-					<SelectItem value="updatedAt">
-						{t('users.sortBy.updatedAt')}
-					</SelectItem>
-				</SelectContent>
-			</Select>
+			<MultiSelect
+				name="roles"
+				// label={`${t('users.roles')}:`}
+				variant="secondary"
+				className="max-w-[250px]"
+				options={roles.map((role) => ({
+					value: role.name,
+					label: role.name,
+				}))}
+				onValueChange={handleFormChange}
+				defaultValue={selectedRolesMemoized}
+				placeholder={t('users.allRoles')}
+				maxCount={3}
+			/>
+			<div className="flex gap-1">
+				<Select
+					{...getSelectProps(fields.sortBy)}
+					defaultValue={fields.sortBy.initialValue}
+				>
+					<SelectTrigger className="items-start">
+						<span className="text-muted-foreground">{t('users.sortBy')}:</span>
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="name">{t('users.sortBy.name')}</SelectItem>
+						<SelectItem value="email">{t('users.sortBy.email')}</SelectItem>
+						<SelectItem value="session">
+							{t('users.sortBy.sessionCount')}
+						</SelectItem>
+						<SelectItem value="date">{t('users.sortBy.createdAt')}</SelectItem>
+						<SelectItem value="updatedAt">
+							{t('users.sortBy.updatedAt')}
+						</SelectItem>
+					</SelectContent>
+				</Select>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							type="button"
+							name="order"
+							value={nextOrder}
+							size="icon"
+							onClick={() => {
+								setOrder(nextOrder)
+								handleFormChange()
+							}}
+						>
+							<input type="hidden" value={order} name="order" />
+							<AccessibleIcon label="Sort order">
+								{fields.order.value === 'desc' ? <ArrowDown /> : <ArrowUp />}
+							</AccessibleIcon>
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>
+						Sort order:{' '}
+						{fields.order.value === 'desc' ? 'Descending' : 'Ascending'}
+					</TooltipContent>
+				</Tooltip>
+			</div>
+
 			{/*{loaderData.status === 'idle' && (*/}
 			{/*	<StatusButton*/}
 			{/*		type="submit"*/}
@@ -351,11 +410,12 @@ function UserFiltersForm() {
 }
 
 function UsersTable() {
-	const { pagination, users } = useLoaderData<typeof loader>()
+	const { totalUsers, users, formData } = useLoaderData<typeof loader>()
+	const { take, skip } = formData
 	const { t } = useTranslation()
 
 	return (
-		pagination.total > 0 && (
+		totalUsers > 0 && (
 			<Table>
 				<TableHeader>
 					<TableRow>
@@ -377,29 +437,28 @@ function UsersTable() {
 				<TableBody>
 					{users.map((user) => (
 						<TableRow key={user.id}>
-							<TableCell>
+							<TableCell className="flex">
 								<Tooltip delayDuration={400}>
-									<TooltipTrigger>
+									<TooltipTrigger asChild>
 										<Link
 											to={`/admin/users/${user.username}`}
-											className="flex items-center gap-3 font-semibold"
+											className="flex flex-shrink items-center gap-3"
 											viewTransition
 										>
 											<Avatar
-												className="bg-muted ring-ring size-8 rounded-r-full ring-1 max-sm:hidden"
+												className="bg-muted ring-ring ring-1 max-sm:hidden"
 												aria-hidden={true}
 											>
 												<AvatarImage
 													src={getUserImgSrc(user.image?.objectKey)}
 													alt={user.name || user.username}
 												/>
-												<AvatarFallback className="rounded-lg">
+												<AvatarFallback>
 													{getInitials(`${user.name} ${user.username}`)}
 												</AvatarFallback>
 											</Avatar>
-											<div className="grid flex-1 text-left text-sm leading-tight">
-												<span className="">{user.name}</span>
-
+											<div className="flex flex-col text-left text-sm leading-tight">
+												<span className="font-semibold">{user.name}</span>
 												<span className="text-muted-foreground truncate text-xs">
 													{user.email}
 												</span>
@@ -424,9 +483,9 @@ function UsersTable() {
 							<TableCell>
 								<Tooltip delayDuration={400}>
 									<TooltipTrigger className="text-left">
-										{user.createdAt.distanceToNow}
+										{user.date.distanceToNow}
 									</TooltipTrigger>
-									<TooltipContent>{user.createdAt.formatted}</TooltipContent>
+									<TooltipContent>{user.date.formatted}</TooltipContent>
 								</Tooltip>
 							</TableCell>
 							<TableCell>
@@ -447,24 +506,15 @@ function UsersTable() {
 							className="text-xs text-gray-500 dark:text-gray-400"
 						>
 							{t('table.usersCountSummary', {
-								context:
-									pagination.total <= pagination.take
-										? 'singlePage'
-										: 'multiplePages',
-								count: pagination.total,
-								from: Math.min(pagination.total, pagination.skip + 1),
-								to: Math.min(
-									pagination.take + pagination.skip,
-									pagination.total,
-								),
+								context: totalUsers <= take ? 'singlePage' : 'multiplePages',
+								count: totalUsers,
+								from: Math.min(totalUsers, skip + 1),
+								to: Math.min(take + skip, totalUsers),
 							})}
 						</TableCell>
 						<TableCell colSpan={4}>
-							{pagination.total > pagination.take && (
-								<PaginationBar
-									total={pagination.total}
-									defaultTake={pagination.take}
-								/>
+							{totalUsers > take && (
+								<PaginationBar total={totalUsers} defaultTake={take} />
 							)}
 						</TableCell>
 					</TableRow>
@@ -476,10 +526,10 @@ function UsersTable() {
 
 export const meta: Route.MetaFunction = ({}) => {
 	return [
-		{ title: `Users | Rr App Administration` },
+		{ title: `Users | ${ENV.APP_NAME} Administration` },
 		{
 			name: 'description',
-			content: `Users on Rr App Administration`,
+			content: `Users on ${ENV.APP_NAME} Administration`,
 		},
 	]
 }
