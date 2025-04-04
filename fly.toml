@@ -10,6 +10,7 @@ swap_size_mb = 512
   PORT = "8080"
   METRICS_PORT = "8081"
   NODE_OPTIONS = '--max-old-space-size=4096'
+  APP_NAME = 'Rr App'
 
 [metrics]
   port = 8081
