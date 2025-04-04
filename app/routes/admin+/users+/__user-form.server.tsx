@@ -1,12 +1,16 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseFormData } from '@mjackson/form-data-parser'
 import { createId as cuid } from '@paralleldrive/cuid2'
+import * as E from '@react-email/components'
+import React from 'react'
 import { data } from 'react-router'
 import { z } from 'zod'
 import { type Route } from './+types/$username.ts'
 import { UserFormSchema } from './__user-form'
+import { prepareVerification } from '@/routes/_auth+/verify.server.ts'
 import { checkIsCommonPassword, getPasswordHash } from '@/utils/auth.server.ts'
 import { prisma } from '@/utils/db.server.ts'
+import { sendEmail } from '@/utils/email.server.ts'
 import { uploadProfileImage } from '@/utils/storage.server.ts'
 import { createToastHeaders, redirectWithToast } from '@/utils/toast.server.ts'
 import { MAX_UPLOAD_SIZE } from '@/utils/user-validation.ts'
@@ -100,6 +104,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		roles,
 		password,
 	} = submission.value
+
 	const user = await prisma.user.upsert({
 		select: {
 			id: true,
@@ -119,6 +124,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 				? {
 						create: {
 							hash: await getPasswordHash(password),
+							requiredReset: true,
 						},
 					}
 				: undefined,
@@ -141,6 +147,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 				? {
 						update: {
 							hash: await getPasswordHash(password),
+							requiredReset: true,
 						},
 					}
 				: undefined,
@@ -160,6 +167,21 @@ export async function action({ request, params }: Route.ActionArgs) {
 			},
 		},
 	})
+
+	if (password) {
+		const { verifyUrl } = await prepareVerification({
+			period: 10 * 60,
+			request,
+			type: 'reset-password',
+			target: email,
+		})
+
+		await sendEmail({
+			to: user.email,
+			subject: `${ENV.APP_NAME} Password Changed`,
+			react: <PasswordChangedEmail resetUrl={verifyUrl} />,
+		})
+	}
 
 	if (!params.username) {
 		return redirectWithToast('/admin/users', {
@@ -187,5 +209,30 @@ export async function action({ request, params }: Route.ActionArgs) {
 				type: 'success',
 			}),
 		},
+	)
+}
+
+function PasswordChangedEmail({ resetUrl }: { resetUrl: URL }) {
+	return (
+		<E.Html lang="en" dir="ltr">
+			<E.Container>
+				<h1>
+					<E.Text>{ENV.APP_NAME} Password Changed</E.Text>
+				</h1>
+				<p>
+					<E.Text>Your password has been changed by administrator.</E.Text>
+				</p>
+				<p>
+					<E.Text>
+						For safety reasons, you will be asked to change it again on your
+						next login.
+					</E.Text>
+				</p>
+				<p>
+					<E.Text>Or click the link to change it now:</E.Text>
+				</p>
+				<E.Link href={resetUrl.toString()}>{resetUrl.toString()}</E.Link>
+			</E.Container>
+		</E.Html>
 	)
 }

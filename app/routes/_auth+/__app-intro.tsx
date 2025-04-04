@@ -6,7 +6,7 @@ export function AppIntro() {
 		<div className="m-2 flex rounded-4xl bg-gray-900 p-[10%] ring-10 ring-white/20 max-lg:hidden lg:mt-[10%] lg:mr-[30%] lg:mb-[-5%]">
 			<div className="flex flex-col gap-10 text-sm text-gray-300">
 				<h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-white lg:text-5xl">
-					Rr App
+					{ENV.APP_NAME}
 				</h1>
 				<p className="text-gray-400">
 					An advanced React router app built on top of the Epic Web stack

@@ -23,7 +23,7 @@ export function AuthCard({
 				<div className="flex flex-col justify-center gap-10 max-sm:gap-6">
 					{includeAppName && (
 						<div className="self-center text-4xl text-white underline underline-offset-4 max-sm:text-3xl">
-							Rr App
+							{ENV.APP_NAME}
 						</div>
 					)}
 					<Card className="ring-3 ring-white/20 md:p-10">

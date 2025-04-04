@@ -1,5 +1,5 @@
 import { type Prisma } from '@prisma/client'
-import { createPassword, getUserImages } from '@tests/db.utils'
+import { createPassword, createUser, getUserImages } from '@tests/db.utils'
 import { prisma } from '@/utils/db.server.ts'
 
 async function seed() {
@@ -9,12 +9,8 @@ async function seed() {
 	console.time('🔑 Upserted permissions...')
 	const entities: Prisma.PermissionActionEntityAccessCompoundUniqueInput['entity'][] =
 		['user']
-	const actions: Prisma.PermissionActionEntityAccessCompoundUniqueInput['action'][] = [
-		'create',
-		'read',
-		'update',
-		'delete',
-	]
+	const actions: Prisma.PermissionActionEntityAccessCompoundUniqueInput['action'][] =
+		['create', 'read', 'update', 'delete']
 	const accesses: Prisma.PermissionActionEntityAccessCompoundUniqueInput['access'][] =
 		['own', 'any'] as const
 
@@ -73,42 +69,26 @@ async function seed() {
 	})
 	console.timeEnd('👑 Upserted roles...')
 
-	// const totalUsers = 5
-	// console.time(`👤 Upserted ${totalUsers} users...`)
+	const totalUsers = 57
+	console.time(`👤 Upserted ${totalUsers} users...`)
 	const userImages = await getUserImages()
-	//
-	// for (let index = 0; index < totalUsers; index++) {
-	// 	const userData = createUser()
-	// 	const user = await prisma.user.upsert({
-	// 		where: {
-	// 			username: userData.username,
-	// 		},
-	// 		update: {},
-	// 		create: {
-	// 			...userData,
-	// 			password: { create: createPassword(userData.username) },
-	// 			roles: { connect: { name: 'user' } },
-	// 		},
-	// 		select: { id: true },
-	// 	})
-	//
-	// 	// Upload user profile image
-	// 	const userImage = userImages[index % userImages.length]
-	// 	if (userImage) {
-	// 		await prisma.userImage.upsert({
-	// 			where: {
-	// 				userId: user.id,
-	// 				objectKey: userImage.objectKey,
-	// 			},
-	// 			update: {},
-	// 			create: {
-	// 				userId: user.id,
-	// 				objectKey: userImage.objectKey,
-	// 			},
-	// 		})
-	// 	}
-	// }
-	// console.timeEnd(`👤 Upserted ${totalUsers} users...`)
+
+	for (let index = 0; index < totalUsers; index++) {
+		const userData = createUser()
+		await prisma.user.upsert({
+			where: {
+				username: userData.username,
+			},
+			update: {},
+			create: {
+				...userData,
+				password: { create: createPassword(userData.username) },
+				roles: { connect: { name: 'user' } },
+			},
+			select: { id: true },
+		})
+	}
+	console.timeEnd(`👤 Upserted ${totalUsers} users...`)
 
 	console.time('👑 Upserted admin user "admin"')
 	const adminUser = await prisma.user.upsert({
@@ -127,7 +107,7 @@ async function seed() {
 	})
 
 	// Upload admin user profile image
-	const adminUserImage = userImages[6]
+	const adminUserImage = userImages[1]
 	if (adminUserImage) {
 		await prisma.userImage.upsert({
 			where: {

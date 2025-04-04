@@ -1,9 +1,8 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import * as E from '@react-email/components'
 import React from 'react'
-import { data, Form, redirect } from 'react-router'
+import { data, Form, Link, redirect } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { type Route } from './+types/login.ts'
@@ -18,10 +17,6 @@ import { sendEmail } from '@/utils/email.server.ts'
 import { checkHoneypot } from '@/utils/honeypot.server.ts'
 import { useIsPending } from '@/utils/misc'
 import { EmailSchema } from '@/utils/user-validation.ts'
-
-export const handle: SEOHandle = {
-	getSitemapEntries: () => null,
-}
 
 const SignupSchema = z.object({
 	email: EmailSchema,
@@ -76,7 +71,7 @@ export async function action({ request }: Route.ActionArgs) {
 
 	const response = await sendEmail({
 		to: email,
-		subject: `Welcome to Rr App!`,
+		subject: `Welcome to ${ENV.APP_NAME}!`,
 		react: <SignupEmail onboardingUrl={verifyUrl.toString()} otp={otp} />,
 	})
 
@@ -105,7 +100,7 @@ export function SignupEmail({
 		<E.Html lang="en" dir="ltr">
 			<E.Container align="left">
 				<h1>
-					<E.Text>Welcome to Rr App!</E.Text>
+					<E.Text>Welcome to {ENV.APP_NAME}!</E.Text>
 				</h1>
 				<p>
 					<E.Text>
@@ -139,29 +134,37 @@ export default function SignupRoute({ actionData }: Route.ComponentProps) {
 			title="Let's start your journey!"
 			description="Please enter your email address"
 		>
-			<Form method="POST" {...getFormProps(form)}>
+			<Form
+				method="POST"
+				{...getFormProps(form)}
+				className="flex flex-col gap-6"
+			>
 				<HoneypotInputs />
-				<div className="flex flex-col gap-6">
-					<Field
-						className="grid gap-2"
-						labelProps={{ children: 'Email' }}
-						inputProps={{
-							...getInputProps(fields.email, { type: 'email' }),
-							placeholder: 'm@example.com',
-							autoComplete: 'email',
-							autoFocus: true,
-						}}
-						errors={fields.email.errors}
-					/>
-					<ErrorList errors={form.errors} />
-					<StatusButton
-						className="w-full"
-						type="submit"
-						disabled={isPending}
-						status={isPending ? 'pending' : (form.status ?? 'idle')}
-					>
-						Submit
-					</StatusButton>
+				<Field
+					className="grid gap-2"
+					labelProps={{ children: 'Email' }}
+					inputProps={{
+						...getInputProps(fields.email, { type: 'email' }),
+						placeholder: 'm@example.com',
+						autoComplete: 'email',
+						autoFocus: true,
+					}}
+					errors={fields.email.errors}
+				/>
+				<ErrorList errors={form.errors} />
+				<StatusButton
+					className="w-full"
+					type="submit"
+					disabled={isPending}
+					status={isPending ? 'pending' : (form.status ?? 'idle')}
+				>
+					Submit
+				</StatusButton>
+				<div className="self-end text-sm">
+					Already have account?{' '}
+					<Link to="/login" className="underline underline-offset-4">
+						Login here
+					</Link>
 				</div>
 			</Form>
 		</AuthCard>
@@ -169,7 +172,7 @@ export default function SignupRoute({ actionData }: Route.ComponentProps) {
 }
 
 export const meta: Route.MetaFunction = () => {
-	return [{ title: 'Signup | Rr App' }]
+	return [{ title: `Signup | ${ENV.APP_NAME}` }]
 }
 
 export function ErrorBoundary() {

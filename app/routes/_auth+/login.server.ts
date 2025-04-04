@@ -1,9 +1,11 @@
 import { redirect } from 'react-router'
 import { safeRedirect } from 'remix-utils/safe-redirect'
+import { resetPasswordUsernameSessionKey } from '@/routes/_auth+/reset-password.tsx'
 import { sessionKey } from '@/utils/auth.server'
 import { prisma } from '@/utils/db.server.ts'
 import { combineResponseInits } from '@/utils/misc'
 import { authSessionStorage } from '@/utils/session.server'
+import { verifySessionStorage } from '@/utils/verification.server.ts'
 
 export async function handleNewSession(
 	{
@@ -19,16 +21,35 @@ export async function handleNewSession(
 	},
 	responseInit?: ResponseInit,
 ) {
+	const user = await prisma.user.findUnique({
+		where: { id: session.userId },
+		include: {
+			password: true,
+			roles: {
+				where: {
+					name: 'admin',
+				},
+			},
+		},
+	})
+
+	if (user?.password?.requiredReset) {
+		const verifySession = await verifySessionStorage.getSession()
+		verifySession.set(resetPasswordUsernameSessionKey, user.username)
+		return redirect('/reset-password-required', {
+			headers: {
+				'set-cookie': await verifySessionStorage.commitSession(verifySession),
+			},
+		})
+	}
+
 	const authSession = await authSessionStorage.getSession(
 		request.headers.get('cookie'),
 	)
 	authSession.set(sessionKey, session.id)
 
 	if (!redirectTo) {
-		const isAdminUser = await prisma.user.findUnique({
-			where: { id: session.userId, roles: { some: { name: 'admin' } } },
-		})
-		if (isAdminUser) {
+		if (!!user?.roles.find((role) => role.name === 'admin')) {
 			redirectTo = '/admin'
 		}
 	}

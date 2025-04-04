@@ -123,7 +123,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export const meta: Route.MetaFunction = () => {
-	return [{ title: 'Setup Rr App Account' }]
+	return [{ title: `Setup ${ENV.APP_NAME} Account` }]
 }
 
 export default function OnboardingRoute({

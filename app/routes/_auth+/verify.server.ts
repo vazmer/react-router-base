@@ -4,6 +4,7 @@ import { generateTOTP, verifyTOTP } from '@epic-web/totp'
 import { data } from 'react-router'
 import { z } from 'zod'
 import { handleVerification as handleOnboardingVerification } from './onboarding.server.ts'
+import { handleVerification as handleResetPasswordVerification } from './reset-password.server.ts'
 import {
 	codeQueryParam,
 	redirectToQueryParam,
@@ -127,10 +128,10 @@ export async function validateRequest(
 	}
 
 	switch (submissionValue[typeQueryParam]) {
-		// case 'reset-password': {
-		// 	await deleteVerification()
-		// 	return handleResetPasswordVerification({ request, body, submission })
-		// }
+		case 'reset-password': {
+			await deleteVerification()
+			return handleResetPasswordVerification({ request, body, submission })
+		}
 		case 'onboarding': {
 			await deleteVerification()
 			return handleOnboardingVerification({ request, body, submission })

@@ -53,7 +53,7 @@ function StatusButton({
 		error: (
 			<div
 				role="status"
-				className="bg-destructive inline-flex size-6 items-center justify-center rounded-full"
+				className="bg-destructive inline-flex size-4 items-center justify-center rounded-full"
 			>
 				<AccessibleIcon label="error">
 					<X className="text-destructive-foreground" />
@@ -66,7 +66,7 @@ function StatusButton({
 	return (
 		<Button
 			data-slot="button"
-			className={cn('flex justify-center gap-1', className)}
+			className={cn('flex justify-center gap-2', className)}
 			{...props}
 		>
 			{children ? <div>{children}</div> : null}

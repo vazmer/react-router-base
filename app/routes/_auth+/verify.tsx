@@ -1,6 +1,5 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import React from 'react'
 import { Form, useSearchParams } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
@@ -13,10 +12,6 @@ import { AuthCard } from '@/routes/_auth+/__auth-card.tsx'
 import { validateRequest } from '@/routes/_auth+/verify.server.ts'
 import { checkHoneypot } from '@/utils/honeypot.server'
 import { useIsPending } from '@/utils/misc.tsx'
-
-export const handle: SEOHandle = {
-	getSitemapEntries: () => null,
-}
 
 export const codeQueryParam = 'code'
 export const targetQueryParam = 'target'

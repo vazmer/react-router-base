@@ -129,6 +129,7 @@ export async function resetUserPassword({
 			password: {
 				update: {
 					hash: hashedPassword,
+					requiredReset: false,
 				},
 			},
 		},

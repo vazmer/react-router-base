@@ -216,11 +216,13 @@ export function ImageUpload({
 	meta: FieldMetadata<ImageFieldsetSchema>
 	labelProps: React.ComponentProps<typeof Label>
 	isExistingImage: boolean
-	initialImage: string
+	initialImage?: string
 	onReset: () => void
 } & React.ComponentProps<'div'>) {
 	const imageFieldset = meta.getFieldset()
-	const [previewImage, setPreviewImage] = useState<string | null>(initialImage)
+	const [previewImage, setPreviewImage] = useState<string | undefined>(
+		initialImage,
+	)
 
 	return (
 		<div className={className}>
@@ -231,7 +233,9 @@ export function ImageUpload({
 						<div className={cn('flex gap-4')}>
 							<ProfileImage
 								previewImage={
-									imageFieldset.file.dirty ? previewImage : initialImage
+									imageFieldset.file.dirty && previewImage
+										? previewImage
+										: (initialImage ?? null)
 								}
 							/>
 							{isExistingImage ? (
@@ -272,7 +276,7 @@ export function ImageUpload({
 															}
 															reader.readAsDataURL(file)
 														} else {
-															setPreviewImage(null)
+															setPreviewImage(undefined)
 														}
 													}}
 													accept="image/*"

@@ -1,6 +1,5 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import React from 'react'
 import { data, Form, Link, useSearchParams } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
@@ -17,10 +16,6 @@ import { login, requireAnonymous } from '@/utils/auth.server.ts'
 import { checkHoneypot } from '@/utils/honeypot.server.ts'
 import { useIsPending } from '@/utils/misc'
 import { PasswordSchema, UsernameSchema } from '@/utils/user-validation.ts'
-
-export const handle: SEOHandle = {
-	getSitemapEntries: () => null,
-}
 
 const LoginFormSchema = z.object({
 	username: UsernameSchema,
@@ -92,7 +87,11 @@ export default function LoginRoute({ actionData }: Route.ComponentProps) {
 				description="Enter your email below to login to your account"
 				includeAppName={false}
 			>
-				<Form method="POST" {...getFormProps(form)}>
+				<Form
+					method="POST"
+					{...getFormProps(form)}
+					className="flex flex-col gap-4"
+				>
 					<HoneypotInputs />
 					<div className="flex flex-col gap-6">
 						<Field
@@ -100,7 +99,7 @@ export default function LoginRoute({ actionData }: Route.ComponentProps) {
 							labelProps={{ children: 'Username' }}
 							inputProps={{
 								...getInputProps(fields.username, { type: 'text' }),
-								placeholder: 'm@example.com',
+								placeholder: 'username',
 								autoComplete: 'username',
 								autoFocus: true,
 								className: 'lowercase',
@@ -116,16 +115,22 @@ export default function LoginRoute({ actionData }: Route.ComponentProps) {
 							}}
 							errors={fields.password.errors}
 						/>
-						<ErrorList errors={form.errors} />
-						<StatusButton
-							className="w-full"
-							type="submit"
-							disabled={isPending}
-							status={isPending ? 'pending' : 'idle'}
-						>
-							Login
-						</StatusButton>
 					</div>
+					<ErrorList errors={form.errors} />
+
+					<div>
+						<Link to="/forgot-password" className="text-sm">
+							Forgot password?
+						</Link>
+					</div>
+					<StatusButton
+						className="w-full"
+						type="submit"
+						disabled={isPending}
+						status={isPending ? 'pending' : 'idle'}
+					>
+						Login
+					</StatusButton>
 					<ServerOnly>
 						{() => (
 							<input
@@ -157,7 +162,7 @@ export default function LoginRoute({ actionData }: Route.ComponentProps) {
 
 export const meta: Route.MetaFunction = () => {
 	return [
-		{ title: 'Login | Rr App' },
+		{ title: `Login | ${ENV.APP_NAME}` },
 		{ name: 'description', content: `Login into App` },
 	]
 }

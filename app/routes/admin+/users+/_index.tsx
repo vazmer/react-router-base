@@ -324,14 +324,9 @@ function UserFiltersForm() {
 				{...getSelectProps(fields.dateFrom)}
 				defaultValue={fields.dateFrom.initialValue}
 			>
-				<Tooltip>
-					<TooltipTrigger>
-						<SelectTrigger className="items-start">
-							<SelectValue />
-						</SelectTrigger>
-					</TooltipTrigger>
-					<TooltipContent>Updated or created date</TooltipContent>
-				</Tooltip>
+				<SelectTrigger className="items-start">
+					<SelectValue />
+				</SelectTrigger>
 				<SelectContent>
 					<SelectItem value="anytime">{t('users.anytime')}</SelectItem>
 					<SelectItem value="lastDay">{t('users.lastDay')}</SelectItem>
@@ -531,10 +526,10 @@ function UsersTable() {
 
 export const meta: Route.MetaFunction = ({}) => {
 	return [
-		{ title: `Users | Rr App Administration` },
+		{ title: `Users | ${ENV.APP_NAME} Administration` },
 		{
 			name: 'description',
-			content: `Users on Rr App Administration`,
+			content: `Users on ${ENV.APP_NAME} Administration`,
 		},
 	]
 }
