@@ -27,7 +27,7 @@ export default function Index() {
 							public presentation soon.
 						</div>
 						<div>
-							Follow us on Github{' '}
+							Follow us at Github{' '}
 							<Link
 								className="font-medium text-blue-500 hover:underline"
 								to="https://github.com/vazmer/react-router-base"
