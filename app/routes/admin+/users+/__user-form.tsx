@@ -191,8 +191,8 @@ function UserForm({
 							...getInputProps(fields.confirmPassword, {
 								type: 'password',
 								key: fields.confirmPassword.key,
-								autoComplete: 'new-password',
 							}),
+							autoComplete: 'new-password',
 						}}
 						errors={fields.confirmPassword.errors}
 					/>

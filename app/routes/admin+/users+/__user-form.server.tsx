@@ -169,7 +169,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	})
 
 	if (password) {
-		const { verifyUrl } = await prepareVerification({
+		const { verifyUrl, otp } = await prepareVerification({
 			period: 10 * 60,
 			request,
 			type: 'reset-password',
@@ -179,7 +179,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		await sendEmail({
 			to: user.email,
 			subject: `${ENV.APP_NAME} Password Changed`,
-			react: <PasswordChangedEmail resetUrl={verifyUrl} />,
+			react: <PasswordChangedEmail resetUrl={verifyUrl} otp={otp} />,
 		})
 	}
 
@@ -212,7 +212,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 	)
 }
 
-function PasswordChangedEmail({ resetUrl }: { resetUrl: URL }) {
+function PasswordChangedEmail({
+	resetUrl,
+	otp,
+}: {
+	resetUrl: URL
+	otp: string
+}) {
 	return (
 		<E.Html lang="en" dir="ltr">
 			<E.Container>
@@ -229,7 +235,10 @@ function PasswordChangedEmail({ resetUrl }: { resetUrl: URL }) {
 					</E.Text>
 				</p>
 				<p>
-					<E.Text>Or click the link to change it now:</E.Text>
+					<E.Text>
+						Or click the link below to change it now using the following code:
+						<strong>{otp}</strong>
+					</E.Text>
 				</p>
 				<E.Link href={resetUrl.toString()}>{resetUrl.toString()}</E.Link>
 			</E.Container>

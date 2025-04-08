@@ -5,21 +5,54 @@ import {
 	useForm,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { invariantResponse } from '@epic-web/invariant'
 import { type Prisma } from '@prisma/client'
 import { AccessibleIcon } from '@radix-ui/react-accessible-icon'
 import { type Duration, formatDistanceToNow, intlFormat, sub } from 'date-fns'
 import { type IntlFormatFormatOptions } from 'date-fns/intlFormat'
-import { ArrowDown, ArrowUp, Plus, SearchIcon } from 'lucide-react'
-import React, { useMemo, useRef, useState } from 'react'
+import {
+	ArrowDown,
+	ArrowUp,
+	LogOut,
+	MoreHorizontal,
+	Plus,
+	SearchIcon,
+	Trash,
+	UserPen,
+} from 'lucide-react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { data, Form, Link, useLoaderData, useSubmit } from 'react-router'
+import {
+	data,
+	Form,
+	Link,
+	useFetcher,
+	useLoaderData,
+	useSubmit,
+} from 'react-router'
 import { z } from 'zod'
 import { type Route } from './+types/_index'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { PaginationBar } from '@/components/pagination-bar.tsx'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/alert-dialog.tsx'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { Button, buttonVariants } from '@/components/ui/button.tsx'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
 import { MultiSelect } from '@/components/ui/multi-select.tsx'
@@ -30,6 +63,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select.tsx'
+import { StatusButton } from '@/components/ui/status-button.tsx'
 import {
 	Table,
 	TableBody,
@@ -48,6 +82,8 @@ import { cn } from '@/lib/utils.ts'
 import { prisma } from '@/utils/db.server.ts'
 import { getDateFnsLocale } from '@/utils/i18next.server.ts'
 import { getInitials, getUserImgSrc, useDebounce } from '@/utils/misc.tsx'
+import { requireUserWithPermission } from '@/utils/permission.server.ts'
+import { redirectWithToast } from '@/utils/toast.server.ts'
 
 const PaginationSchema = z.object({
 	skip: z.number().default(0),
@@ -248,6 +284,63 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 	})
 }
 
+const signOutOfSessionsActionIntent = 'sign-out-of-sessions'
+const deleteDataActionIntent = 'delete-user'
+
+export async function action({ request }: Route.ActionArgs) {
+	await requireUserWithPermission(request, 'delete:user')
+	const formData = await request.formData()
+	const intent = formData.get('intent')
+	const userId = formData.get('userId')
+	invariantResponse(typeof userId === 'string', 'userId must be a string')
+
+	switch (intent) {
+		case signOutOfSessionsActionIntent: {
+			return signOutOfSessionsAction({ userId, request })
+		}
+		case deleteDataActionIntent: {
+			return deleteUserAction({ userId, request })
+		}
+		default: {
+			throw new Response(`Invalid intent "${intent}"`, { status: 400 })
+		}
+	}
+}
+
+async function signOutOfSessionsAction({
+	request,
+	userId,
+}: {
+	request: Request
+	userId: string
+}) {
+	await prisma.session.deleteMany({
+		where: {
+			userId,
+		},
+	})
+	return redirectWithToast(request.url, {
+		type: 'success',
+		title: 'All sessions logged out',
+		description: 'The user has been successfully logged out from all sessions.',
+	})
+}
+
+async function deleteUserAction({
+	userId,
+	request,
+}: {
+	request: Request
+	userId: string
+}) {
+	await prisma.user.delete({ where: { id: userId } })
+	return redirectWithToast(request.url, {
+		type: 'success',
+		title: 'User Deleted',
+		description: 'The user has been successfully deleted from the system.',
+	})
+}
+
 export default function UsersRoute() {
 	return (
 		<div className="flex flex-col gap-4">
@@ -409,118 +502,301 @@ function UserFiltersForm() {
 	)
 }
 
+type UserRow = ReturnType<typeof useLoaderData<typeof loader>>['users'][0]
+
 function UsersTable() {
 	const { totalUsers, users, formData } = useLoaderData<typeof loader>()
 	const { take, skip } = formData
 	const { t } = useTranslation()
+	const [activeDialog, setActiveDialog] = useState<
+		{ user: UserRow; name: 'delete' | 'signOutSessions' } | undefined
+	>(undefined)
 
 	return (
 		totalUsers > 0 && (
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>{t('users.name')}</TableHead>
-						<TableHead className="max-w-[200px] max-sm:w-auto">
-							{t('users.roles')}
-						</TableHead>
-						<TableHead className="max-w-[50px] text-center max-sm:w-auto">
-							{t('users.sessions')}
-						</TableHead>
-						<TableHead className="w-[150px] max-sm:w-auto">
-							{t('users.createdAt')}
-						</TableHead>
-						<TableHead className="w-[150px] max-sm:w-auto">
-							{t('users.updatedAt')}
-						</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{users.map((user) => (
-						<TableRow key={user.id}>
-							<TableCell className="flex">
-								<Tooltip delayDuration={400}>
-									<TooltipTrigger asChild>
-										<Link
-											to={`/admin/users/${user.username}`}
-											className="flex flex-shrink items-center gap-3"
-											viewTransition
-										>
-											<Avatar
-												className="bg-muted ring-ring ring-1 max-sm:hidden"
-												aria-hidden={true}
+			<>
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>{t('users.name')}</TableHead>
+							<TableHead className="max-w-[200px] max-sm:w-auto">
+								{t('users.roles')}
+							</TableHead>
+							<TableHead className="max-w-[50px] text-center max-sm:w-auto">
+								{t('users.sessions')}
+							</TableHead>
+							<TableHead className="w-[150px] max-sm:w-auto">
+								{t('users.createdAt')}
+							</TableHead>
+							<TableHead className="w-[150px] max-sm:w-auto">
+								{t('users.updatedAt')}
+							</TableHead>
+							<TableHead className="w-[50px] max-sm:w-auto"></TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{users.map((user) => (
+							<TableRow key={user.id}>
+								<TableCell className="flex">
+									<Tooltip delayDuration={400}>
+										<TooltipTrigger asChild>
+											<Link
+												to={`/admin/users/${user.username}`}
+												className="flex flex-shrink items-center gap-3"
+												viewTransition
 											>
-												<AvatarImage
-													src={getUserImgSrc(user.image?.objectKey)}
-													alt={user.name || user.username}
-												/>
-												<AvatarFallback>
-													{getInitials(`${user.name} ${user.username}`)}
-												</AvatarFallback>
-											</Avatar>
-											<div className="flex flex-col text-left text-sm leading-tight">
-												<span className="font-semibold">{user.name}</span>
-												<span className="text-muted-foreground truncate text-xs">
-													{user.email}
-												</span>
-											</div>
-										</Link>
-									</TooltipTrigger>
-									<TooltipContent>Edit</TooltipContent>
-								</Tooltip>
+												<Avatar
+													className="bg-muted ring-ring ring-1 max-sm:hidden"
+													aria-hidden={true}
+												>
+													<AvatarImage
+														src={getUserImgSrc(user.image?.objectKey)}
+														alt={user.name || user.username}
+													/>
+													<AvatarFallback>
+														{getInitials(`${user.name} ${user.username}`)}
+													</AvatarFallback>
+												</Avatar>
+												<div className="flex flex-col text-left text-sm leading-tight">
+													<span className="font-semibold">{user.name}</span>
+													<span className="text-muted-foreground truncate text-xs">
+														{user.email}
+													</span>
+												</div>
+											</Link>
+										</TooltipTrigger>
+										<TooltipContent>Edit</TooltipContent>
+									</Tooltip>
+								</TableCell>
+								<TableCell>
+									<div className="flex flex-wrap gap-1">
+										{user.roles.map((role) => (
+											<Badge variant="secondary" key={role.id}>
+												{role.name}
+											</Badge>
+										))}
+									</div>
+								</TableCell>
+								<TableCell className="text-center">
+									{user.sessions.length}
+								</TableCell>
+								<TableCell>
+									<Tooltip delayDuration={400}>
+										<TooltipTrigger className="text-left">
+											{user.date.distanceToNow}
+										</TooltipTrigger>
+										<TooltipContent>{user.date.formatted}</TooltipContent>
+									</Tooltip>
+								</TableCell>
+								<TableCell>
+									<Tooltip delayDuration={400}>
+										<TooltipTrigger className="text-left">
+											{user.updatedAt.distanceToNow}
+										</TooltipTrigger>
+										<TooltipContent>{user.updatedAt.formatted}</TooltipContent>
+									</Tooltip>
+								</TableCell>
+								<TableCell>
+									<UserActionsDropdown
+										user={user}
+										onSelectDelete={() =>
+											setActiveDialog({ user, name: 'delete' })
+										}
+										onSelectSignOutSessions={() =>
+											setActiveDialog({ user, name: 'signOutSessions' })
+										}
+									/>
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+					<TableFooter className="bg-transparent hover:bg-transparent">
+						<TableRow className="bg-transparent hover:bg-transparent">
+							<TableCell
+								colSpan={1}
+								className="text-xs text-gray-500 dark:text-gray-400"
+							>
+								{t('table.usersCountSummary', {
+									context: totalUsers <= take ? 'singlePage' : 'multiplePages',
+									count: totalUsers,
+									from: Math.min(totalUsers, skip + 1),
+									to: Math.min(take + skip, totalUsers),
+								})}
 							</TableCell>
-							<TableCell>
-								<div className="flex flex-wrap gap-1">
-									{user.roles.map((role) => (
-										<Badge variant="secondary" key={role.id}>
-											{role.name}
-										</Badge>
-									))}
-								</div>
-							</TableCell>
-							<TableCell className="text-center">
-								{user.sessions.length}
-							</TableCell>
-							<TableCell>
-								<Tooltip delayDuration={400}>
-									<TooltipTrigger className="text-left">
-										{user.date.distanceToNow}
-									</TooltipTrigger>
-									<TooltipContent>{user.date.formatted}</TooltipContent>
-								</Tooltip>
-							</TableCell>
-							<TableCell>
-								<Tooltip delayDuration={400}>
-									<TooltipTrigger className="text-left">
-										{user.updatedAt.distanceToNow}
-									</TooltipTrigger>
-									<TooltipContent>{user.updatedAt.formatted}</TooltipContent>
-								</Tooltip>
+							<TableCell colSpan={5}>
+								{totalUsers > take && (
+									<PaginationBar total={totalUsers} defaultTake={take} />
+								)}
 							</TableCell>
 						</TableRow>
-					))}
-				</TableBody>
-				<TableFooter className="bg-transparent hover:bg-transparent">
-					<TableRow className="bg-transparent hover:bg-transparent">
-						<TableCell
-							colSpan={1}
-							className="text-xs text-gray-500 dark:text-gray-400"
-						>
-							{t('table.usersCountSummary', {
-								context: totalUsers <= take ? 'singlePage' : 'multiplePages',
-								count: totalUsers,
-								from: Math.min(totalUsers, skip + 1),
-								to: Math.min(take + skip, totalUsers),
-							})}
-						</TableCell>
-						<TableCell colSpan={4}>
-							{totalUsers > take && (
-								<PaginationBar total={totalUsers} defaultTake={take} />
-							)}
-						</TableCell>
-					</TableRow>
-				</TableFooter>
-			</Table>
+					</TableFooter>
+				</Table>
+				<DeleteUserDialog
+					user={
+						(activeDialog?.name === 'delete' && activeDialog?.user) || undefined
+					}
+					onSubmit={() => setActiveDialog(undefined)}
+				/>
+				<SignOutUserSessionsDialog
+					user={
+						(activeDialog?.name === 'signOutSessions' && activeDialog?.user) ||
+						undefined
+					}
+					onSubmit={() => setActiveDialog(undefined)}
+				/>
+			</>
 		)
+	)
+}
+
+function UserActionsDropdown({
+	user,
+	onSelectDelete,
+	onSelectSignOutSessions,
+}: {
+	user: UserRow
+	onSelectDelete: () => void
+	onSelectSignOutSessions: () => void
+}) {
+	const { t } = useTranslation()
+
+	return (
+		<DropdownMenu>
+			<Tooltip delayDuration={400}>
+				<TooltipTrigger className="text-left" asChild>
+					<DropdownMenuTrigger asChild>
+						<Button variant="ghost" className="h-8 w-8 p-0">
+							<AccessibleIcon label="Actions">
+								<MoreHorizontal />
+							</AccessibleIcon>
+						</Button>
+					</DropdownMenuTrigger>
+				</TooltipTrigger>
+				<TooltipContent>Actions</TooltipContent>
+			</Tooltip>
+			<DropdownMenuContent align="end">
+				<Link to={`/admin/users/${user.username}`}>
+					<Button variant="ghost" className="size-full justify-start p-0">
+						<DropdownMenuItem className="w-full">
+							<UserPen />
+							{t('users.edit')}
+						</DropdownMenuItem>
+					</Button>
+				</Link>
+				<DropdownMenuItem
+					onSelect={onSelectSignOutSessions}
+					disabled={user.sessions.length === 0}
+				>
+					<LogOut />
+					{t('users.signOutOfAllSessions')}
+				</DropdownMenuItem>
+				<DropdownMenuItem variant="destructive" onSelect={onSelectDelete}>
+					<Trash />
+					{t('users.delete')}
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	)
+}
+
+function DeleteUserDialog({
+	user,
+	onSubmit,
+}: {
+	user?: UserRow
+	onSubmit: () => void
+}) {
+	const [open, setOpen] = useState(!!user)
+	const fetcher = useFetcher<typeof deleteUserAction>()
+
+	useEffect(() => {
+		setOpen(!!user)
+	}, [user])
+
+	return (
+		<AlertDialog open={open} onOpenChange={setOpen}>
+			<AlertDialogContent aria-label={user && `Delete user ${user.name}`}>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+					{user && (
+						<AlertDialogDescription>
+							This action cannot be undone. This will permanently delete{' '}
+							<b>{user.name}</b> from our servers.
+						</AlertDialogDescription>
+					)}
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel>Cancel</AlertDialogCancel>
+					<fetcher.Form method="POST" onSubmit={() => onSubmit()}>
+						<AlertDialogAction asChild>
+							<>
+								<StatusButton
+									type="submit"
+									name="intent"
+									value={deleteDataActionIntent}
+									variant="destructive"
+									status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
+								>
+									Delete
+								</StatusButton>
+								{<input type="hidden" name="userId" value={user?.id} />}
+							</>
+						</AlertDialogAction>
+					</fetcher.Form>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
+	)
+}
+function SignOutUserSessionsDialog({
+	user,
+	onSubmit,
+}: {
+	user?: UserRow
+	onSubmit: () => void
+}) {
+	const [open, setOpen] = useState(!!user)
+	const fetcher = useFetcher<typeof deleteUserAction>()
+
+	useEffect(() => {
+		setOpen(!!user)
+	}, [user])
+
+	return (
+		<AlertDialog open={open} onOpenChange={setOpen}>
+			<AlertDialogContent
+				aria-label={user && `Sign out of all ${user.name} sessions`}
+			>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+					{user && (
+						<AlertDialogDescription>
+							This action will sign out of all <b>{user.name}</b> sessions (
+							{user?.sessions.length}).
+						</AlertDialogDescription>
+					)}
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel>Cancel</AlertDialogCancel>
+					<fetcher.Form method="POST" onSubmit={() => onSubmit()}>
+						<AlertDialogAction asChild>
+							<>
+								<StatusButton
+									type="submit"
+									name="intent"
+									value={signOutOfSessionsActionIntent}
+									variant="destructive"
+									status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
+								>
+									Sign out all sessions
+								</StatusButton>
+								{<input type="hidden" name="userId" value={user?.id} />}
+							</>
+						</AlertDialogAction>
+					</fetcher.Form>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	)
 }
 
