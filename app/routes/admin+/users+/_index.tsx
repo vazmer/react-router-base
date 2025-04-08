@@ -623,7 +623,7 @@ function UsersTable() {
 									to: Math.min(take + skip, totalUsers),
 								})}
 							</TableCell>
-							<TableCell colSpan={4}>
+							<TableCell colSpan={5}>
 								{totalUsers > take && (
 									<PaginationBar total={totalUsers} defaultTake={take} />
 								)}
