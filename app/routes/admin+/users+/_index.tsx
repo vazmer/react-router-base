@@ -51,6 +51,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx'
 import { Input } from '@/components/ui/input.tsx'
@@ -349,7 +350,7 @@ export default function UsersRoute() {
 					<UserFiltersForm />
 					<Link
 						to="/admin/users/new"
-						className={cn(buttonVariants(), 'self-start')}
+						className={cn(buttonVariants(), 'h-8 self-start')}
 						prefetch="intent"
 					>
 						<Plus />
@@ -400,15 +401,15 @@ function UserFiltersForm() {
 			onChange={() => handleFormChange()}
 		>
 			<div className="relative flex grow flex-wrap justify-center gap-2">
-				<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-					<SearchIcon className="size-4 text-gray-500 dark:text-gray-400" />
+				<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+					<SearchIcon className="size-3 text-gray-500 dark:text-gray-400" />
 				</div>
 				<Label htmlFor={fields.search.id} className="sr-only">
 					{t('search')}
 				</Label>
 				<Input
 					placeholder={t('Search...')}
-					className="w-full pl-8 text-sm"
+					className="size-8 w-full pl-6 text-sm"
 					autoFocus
 					{...getInputProps(fields.search, { type: 'search' })}
 				/>
@@ -417,7 +418,7 @@ function UserFiltersForm() {
 				{...getSelectProps(fields.dateFrom)}
 				defaultValue={fields.dateFrom.initialValue}
 			>
-				<SelectTrigger className="items-start">
+				<SelectTrigger size="sm">
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>
@@ -431,9 +432,9 @@ function UserFiltersForm() {
 			</Select>
 			<MultiSelect
 				name="roles"
+				className="h-8"
 				// label={`${t('users.roles')}:`}
 				variant="secondary"
-				className="max-w-[250px]"
 				options={roles.map((role) => ({
 					value: role.name,
 					label: role.name,
@@ -448,7 +449,7 @@ function UserFiltersForm() {
 					{...getSelectProps(fields.sortBy)}
 					defaultValue={fields.sortBy.initialValue}
 				>
-					<SelectTrigger className="items-start">
+					<SelectTrigger className="max-w-[250px]" size="sm">
 						<span className="text-muted-foreground">{t('users.sortBy')}:</span>
 						<SelectValue />
 					</SelectTrigger>
@@ -472,6 +473,7 @@ function UserFiltersForm() {
 							name="order"
 							value={nextOrder}
 							size="icon"
+							className="h-8"
 							onClick={() => {
 								setOrder(nextOrder)
 								handleFormChange()
@@ -637,7 +639,7 @@ function UsersTable() {
 					}
 					onSubmit={() => setActiveDialog(undefined)}
 				/>
-				<SignOutUserSessionsDialog
+				<SignOutSessionsDialog
 					user={
 						(activeDialog?.name === 'signOutSessions' && activeDialog?.user) ||
 						undefined
@@ -690,6 +692,7 @@ function UserActionsDropdown({
 					<LogOut />
 					{t('users.signOutOfAllSessions')}
 				</DropdownMenuItem>
+				<DropdownMenuSeparator />
 				<DropdownMenuItem variant="destructive" onSelect={onSelectDelete}>
 					<Trash />
 					{t('users.delete')}
@@ -748,7 +751,7 @@ function DeleteUserDialog({
 		</AlertDialog>
 	)
 }
-function SignOutUserSessionsDialog({
+function SignOutSessionsDialog({
 	user,
 	onSubmit,
 }: {
