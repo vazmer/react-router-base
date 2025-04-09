@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { CheckIcon, ChevronDown, WandSparkles, XIcon } from 'lucide-react'
+import { CheckIcon, ChevronDown, WandSparkles, X } from 'lucide-react'
 import * as React from 'react'
 
 import { Badge } from '@/components/ui/badge'
@@ -241,8 +241,8 @@ function MultiSelect({
 								)}
 							</div>
 							<div className="flex items-center justify-between">
-								<XIcon
-									className="text-muted-foreground mx-2 h-4 cursor-pointer"
+								<X
+									className="text-muted bg-muted-foreground mx-2 size-3 cursor-pointer rounded-full opacity-70 transition-opacity hover:opacity-100"
 									onClick={(event) => {
 										event.stopPropagation()
 										handleClear()

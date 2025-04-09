@@ -9,6 +9,11 @@ import {
 	PaginationNext,
 	PaginationPrevious,
 } from '@/components/ui/pagination.tsx'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from '@/components/ui/tooltip.tsx'
 
 function PaginationBar({
 	total,
@@ -51,26 +56,36 @@ function PaginationBar({
 		<Pagination className="justify-end">
 			<PaginationContent>
 				<PaginationItem>
-					<PaginationFirst
-						className="size-8 text-xs"
-						disabled={!canPageBackwards}
-						to={{
-							search: setSearchParamsString(searchParams, {
-								skip: 0,
-							}),
-						}}
-					/>
+					<Tooltip>
+						<TooltipTrigger>
+							<PaginationFirst
+								className="size-8 text-xs"
+								disabled={!canPageBackwards}
+								to={{
+									search: setSearchParamsString(searchParams, {
+										skip: 0,
+									}),
+								}}
+							/>
+						</TooltipTrigger>
+						<TooltipContent>Go to First</TooltipContent>
+					</Tooltip>
 				</PaginationItem>
 				<PaginationItem>
-					<PaginationPrevious
-						className="size-8 text-xs"
-						disabled={!canPageBackwards}
-						to={{
-							search: setSearchParamsString(searchParams, {
-								skip: Math.max(skip - take, 0),
-							}),
-						}}
-					/>
+					<Tooltip>
+						<TooltipTrigger>
+							<PaginationPrevious
+								className="size-8 text-xs"
+								disabled={!canPageBackwards}
+								to={{
+									search: setSearchParamsString(searchParams, {
+										skip: Math.max(skip - take, 0),
+									}),
+								}}
+							/>
+						</TooltipTrigger>
+						<TooltipContent>Go to Previous</TooltipContent>
+					</Tooltip>
 				</PaginationItem>
 				{pageNumbers.map((pageNumber) => (
 					<PaginationItem key={pageNumber}>
@@ -91,26 +106,36 @@ function PaginationBar({
 				{/*	<PaginationEllipsis />*/}
 				{/*</PaginationItem>*/}
 				<PaginationItem>
-					<PaginationNext
-						className="size-8 text-xs"
-						disabled={!canPageForwards}
-						to={{
-							search: setSearchParamsString(searchParams, {
-								skip: skip + take,
-							}),
-						}}
-					/>
+					<Tooltip>
+						<TooltipTrigger>
+							<PaginationNext
+								className="size-8 text-xs"
+								disabled={!canPageForwards}
+								to={{
+									search: setSearchParamsString(searchParams, {
+										skip: skip + take,
+									}),
+								}}
+							/>
+						</TooltipTrigger>
+						<TooltipContent>Go to Next</TooltipContent>
+					</Tooltip>
 				</PaginationItem>
 				<PaginationItem>
-					<PaginationLast
-						className="size-8 text-xs"
-						disabled={!canPageForwards}
-						to={{
-							search: setSearchParamsString(searchParams, {
-								skip: (totalPages - 1) * take,
-							}),
-						}}
-					/>
+					<Tooltip>
+						<TooltipTrigger>
+							<PaginationLast
+								className="size-8 text-xs"
+								disabled={!canPageForwards}
+								to={{
+									search: setSearchParamsString(searchParams, {
+										skip: (totalPages - 1) * take,
+									}),
+								}}
+							/>
+						</TooltipTrigger>
+						<TooltipContent>Go to Last</TooltipContent>
+					</Tooltip>
 				</PaginationItem>
 			</PaginationContent>
 		</Pagination>

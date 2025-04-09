@@ -11,8 +11,8 @@ import { AccessibleIcon } from '@radix-ui/react-accessible-icon'
 import { type Duration, formatDistanceToNow, intlFormat, sub } from 'date-fns'
 import { type IntlFormatFormatOptions } from 'date-fns/intlFormat'
 import {
-	ArrowDown,
-	ArrowUp,
+	ArrowDownNarrowWide,
+	ArrowUpNarrowWide,
 	LogOut,
 	MoreHorizontal,
 	Plus,
@@ -88,7 +88,7 @@ import { redirectWithToast } from '@/utils/toast.server.ts'
 
 const PaginationSchema = z.object({
 	skip: z.number().default(0),
-	take: z.number().default(15),
+	take: z.number().default(10),
 })
 
 const FilterSchema = z.object({
@@ -371,9 +371,7 @@ function UserFiltersForm() {
 	const [form, fields] = useForm({
 		id: 'users-table-form',
 		constraint: getZodConstraint(UsersSchema),
-		defaultValue: {
-			...formData,
-		},
+		defaultValue: formData,
 	})
 
 	const handleFormChange = useDebounce(async () => {
@@ -400,7 +398,7 @@ function UserFiltersForm() {
 			{...getFormProps(form)}
 			onChange={() => handleFormChange()}
 		>
-			<div className="relative flex grow flex-wrap justify-center gap-2">
+			<div className="relative flex min-w-[250px] flex-wrap justify-center gap-2">
 				<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
 					<SearchIcon className="size-3 text-gray-500 dark:text-gray-400" />
 				</div>
@@ -409,7 +407,7 @@ function UserFiltersForm() {
 				</Label>
 				<Input
 					placeholder={t('Search...')}
-					className="size-8 w-full pl-6 text-sm"
+					className="size-8 w-full pl-6 text-xs"
 					autoFocus
 					{...getInputProps(fields.search, { type: 'search' })}
 				/>
@@ -481,7 +479,11 @@ function UserFiltersForm() {
 						>
 							<input type="hidden" value={order} name="order" />
 							<AccessibleIcon label="Sort order">
-								{fields.order.value === 'desc' ? <ArrowDown /> : <ArrowUp />}
+								{fields.order.value === 'desc' ? (
+									<ArrowDownNarrowWide />
+								) : (
+									<ArrowUpNarrowWide />
+								)}
 							</AccessibleIcon>
 						</Button>
 					</TooltipTrigger>

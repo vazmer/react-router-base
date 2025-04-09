@@ -39,8 +39,8 @@
 		"last30Days": "Last 30 days",
 		"lastQuarter": "Last quarter",
 		"lastYear": "Last year",
-		"edit": "Edit user",
-		"delete": "Delete user",
+		"edit": "Edit",
+		"delete": "Delete",
 		"signOutOfAllSessions": "Sign out of all sessions"
 	},
 	"Search...": "Search...",
