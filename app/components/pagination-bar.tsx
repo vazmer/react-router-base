@@ -57,7 +57,7 @@ function PaginationBar({
 			<PaginationContent>
 				<PaginationItem>
 					<Tooltip>
-						<TooltipTrigger>
+						<TooltipTrigger asChild>
 							<PaginationFirst
 								className="size-8 text-xs"
 								disabled={!canPageBackwards}
@@ -73,7 +73,7 @@ function PaginationBar({
 				</PaginationItem>
 				<PaginationItem>
 					<Tooltip>
-						<TooltipTrigger>
+						<TooltipTrigger asChild>
 							<PaginationPrevious
 								className="size-8 text-xs"
 								disabled={!canPageBackwards}
@@ -102,12 +102,9 @@ function PaginationBar({
 						</PaginationLink>
 					</PaginationItem>
 				))}
-				{/*<PaginationItem>*/}
-				{/*	<PaginationEllipsis />*/}
-				{/*</PaginationItem>*/}
 				<PaginationItem>
 					<Tooltip>
-						<TooltipTrigger>
+						<TooltipTrigger asChild>
 							<PaginationNext
 								className="size-8 text-xs"
 								disabled={!canPageForwards}
@@ -123,7 +120,7 @@ function PaginationBar({
 				</PaginationItem>
 				<PaginationItem>
 					<Tooltip>
-						<TooltipTrigger>
+						<TooltipTrigger asChild>
 							<PaginationLast
 								className="size-8 text-xs"
 								disabled={!canPageForwards}
