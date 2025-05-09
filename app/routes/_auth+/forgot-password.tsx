@@ -132,7 +132,6 @@ export default function ForgotPasswordRoute() {
 			<AuthCard
 				title="Forgot Password"
 				description="No worries, we'll send you reset instructions."
-				includeAppName={false}
 			>
 				<forgotPassword.Form
 					method="POST"

@@ -1,9 +1,9 @@
 import crypto from 'node:crypto'
-import { type Password, type User } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { redirect } from 'react-router'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import { authSessionStorage } from './session.server.ts'
+import { type Password, type User } from '@/prisma/generated/client.ts'
 import { prisma } from '@/utils/db.server.ts'
 import { combineHeaders } from '@/utils/misc'
 

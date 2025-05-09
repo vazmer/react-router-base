@@ -85,7 +85,6 @@ export default function LoginRoute({ actionData }: Route.ComponentProps) {
 			<AuthCard
 				title="Login"
 				description="Enter your email below to login to your account"
-				includeAppName={false}
 			>
 				<Form
 					method="POST"

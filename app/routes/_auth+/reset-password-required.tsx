@@ -15,8 +15,8 @@ export default function ResetPasswordPage({
 				title="Password Reset Required"
 				description={`Hi, ${loaderData.resetPasswordUsername}.`}
 			>
-				<Alert variant="destructive">
-					<AlertCircle className="h-4 w-4" />
+				<Alert>
+					<AlertCircle />
 					<AlertDescription>
 						Your password has been recently updated by administrator. For
 						security reasons, you are required to changed it on next login.

@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { CheckIcon, ChevronDown, WandSparkles, XIcon } from 'lucide-react'
+import { CheckIcon, ChevronDown, WandSparkles, X } from 'lucide-react'
 import * as React from 'react'
 
 import { Badge } from '@/components/ui/badge'
@@ -183,18 +183,16 @@ function MultiSelect({
 					data-slot="button"
 					onClick={handleTogglePopover}
 					className={cn(
-						'flex h-auto min-h-9 items-center justify-between rounded-md border bg-inherit p-1 font-normal hover:bg-inherit [&_svg]:pointer-events-auto',
+						"border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent p-2 text-sm font-normal whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none hover:bg-inherit focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-auto [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 						className,
 					)}
 					{...props}
 				>
 					{selectedValues.length > 0 ? (
-						<div className="flex w-full items-center justify-between">
+						<div className="flex w-full items-center justify-between gap-2">
 							<div className="flex flex-wrap items-center">
 								{label && (
-									<span className="text-muted-foreground mr-1 ml-2">
-										{label}
-									</span>
+									<span className="text-muted-foreground">{label}</span>
 								)}
 								{selectedValues.slice(0, maxCount).map((value) => {
 									const option = options.find((o) => o.value === value)
@@ -240,9 +238,9 @@ function MultiSelect({
 									</Badge>
 								)}
 							</div>
-							<div className="flex items-center justify-between">
-								<XIcon
-									className="text-muted-foreground mx-2 h-4 cursor-pointer"
+							<div className="flex items-center justify-between gap-1.5">
+								<X
+									className="text-muted bg-muted-foreground size-3 cursor-pointer rounded-full opacity-70 transition-opacity hover:opacity-100"
 									onClick={(event) => {
 										event.stopPropagation()
 										handleClear()
@@ -252,15 +250,15 @@ function MultiSelect({
 									orientation="vertical"
 									className="flex h-full min-h-6"
 								/>
-								<ChevronDown className="text-muted-foreground mx-2 h-4 cursor-pointer" />
+								<ChevronDown className="text-muted-foreground h-4 cursor-pointer" />
 							</div>
 						</div>
 					) : (
-						<div className="mx-auto flex w-full items-center justify-between">
-							<span className="text-muted-foreground mx-3 text-sm">
+						<div className="mx-auto flex w-full items-center justify-between gap-2">
+							<span className="text-muted-foreground text-sm">
 								{placeholder}
 							</span>
-							<ChevronDown className="text-muted-foreground mx-2 h-4 cursor-pointer" />
+							<ChevronDown className="text-muted-foreground h-4 cursor-pointer" />
 						</div>
 					)}
 					{selectedValues.map((value) => (
@@ -288,7 +286,7 @@ function MultiSelect({
 							>
 								<div
 									className={cn(
-										'border-primary mr-§ flex size-4 items-center justify-center rounded-sm border',
+										'border-primary flex size-4 items-center justify-center rounded-sm border',
 										selectedValues.length === options.length
 											? 'bg-primary text-primary-foreground'
 											: 'opacity-50 [&_svg]:invisible',

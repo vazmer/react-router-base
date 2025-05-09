@@ -40,7 +40,8 @@
 	"Search...": "Претрага...",
 	"table": {
 		"usersCountSummary_singlePage": "Приказују се {{count}} корисника",
-		"usersCountSummary_singlePage_one": "Приказују се {{count}} корисник",
+		"usersCountSummary_singlePage_one": "Приказује се {{count}} корисник",
+		"usersCountSummary_singlePage_other": "Приказује се {{count}} корисника",
 		"usersCountSummary_multiplePages": "Приказује се {{from}}-{{to}} од {{count}} корисника"
 	}
 }

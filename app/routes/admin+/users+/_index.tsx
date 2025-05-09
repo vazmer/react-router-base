@@ -6,16 +6,15 @@ import {
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import { type Prisma } from '@prisma/client'
 import { AccessibleIcon } from '@radix-ui/react-accessible-icon'
 import { type Duration, formatDistanceToNow, intlFormat, sub } from 'date-fns'
 import { type IntlFormatFormatOptions } from 'date-fns/intlFormat'
 import {
-	ArrowDown,
-	ArrowUp,
+	ArrowDownNarrowWide,
+	ArrowUpNarrowWide,
+	CirclePlus,
 	LogOut,
 	MoreHorizontal,
-	Plus,
 	SearchIcon,
 	Trash,
 	UserPen,
@@ -51,6 +50,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx'
 import { Input } from '@/components/ui/input.tsx'
@@ -79,6 +79,7 @@ import {
 	TooltipTrigger,
 } from '@/components/ui/tooltip.tsx'
 import { cn } from '@/lib/utils.ts'
+import { type Prisma } from '@/prisma/generated/client.ts'
 import { prisma } from '@/utils/db.server.ts'
 import { getDateFnsLocale } from '@/utils/i18next.server.ts'
 import { getInitials, getUserImgSrc, useDebounce } from '@/utils/misc.tsx'
@@ -87,7 +88,7 @@ import { redirectWithToast } from '@/utils/toast.server.ts'
 
 const PaginationSchema = z.object({
 	skip: z.number().default(0),
-	take: z.number().default(15),
+	take: z.number().default(10),
 })
 
 const FilterSchema = z.object({
@@ -111,16 +112,8 @@ const FilterSchema = z.object({
 
 const SortSchema = z.object({
 	sortBy: z
-		.enum([
-			'name',
-			'email',
-			'username',
-			'date',
-			'updatedAt',
-			'createdAt',
-			'session',
-		])
-		.default('date'),
+		.enum(['name', 'email', 'username', 'updatedAt', 'createdAt'])
+		.default('updatedAt'),
 	order: z.enum(['asc', 'desc']).default('asc'),
 })
 
@@ -212,6 +205,7 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 	const orderBy: Prisma.UserOrderByWithRelationInput[] = [{ updatedAt: order }]
 	switch (sortBy) {
 		case 'createdAt':
+		case 'updatedAt':
 		case 'name':
 		case 'email':
 		case 'username':
@@ -349,10 +343,10 @@ export default function UsersRoute() {
 					<UserFiltersForm />
 					<Link
 						to="/admin/users/new"
-						className={cn(buttonVariants(), 'self-start')}
+						className={cn(buttonVariants(), 'h-8 self-start')}
 						prefetch="intent"
 					>
-						<Plus />
+						<CirclePlus />
 						Add new
 					</Link>
 				</div>
@@ -370,9 +364,7 @@ function UserFiltersForm() {
 	const [form, fields] = useForm({
 		id: 'users-table-form',
 		constraint: getZodConstraint(UsersSchema),
-		defaultValue: {
-			...formData,
-		},
+		defaultValue: formData,
 	})
 
 	const handleFormChange = useDebounce(async () => {
@@ -399,16 +391,16 @@ function UserFiltersForm() {
 			{...getFormProps(form)}
 			onChange={() => handleFormChange()}
 		>
-			<div className="relative flex grow flex-wrap justify-center gap-2">
-				<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-					<SearchIcon className="size-4 text-gray-500 dark:text-gray-400" />
+			<div className="relative flex min-w-[250px] flex-wrap justify-center gap-2">
+				<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+					<SearchIcon className="size-3 text-gray-500 dark:text-gray-400" />
 				</div>
 				<Label htmlFor={fields.search.id} className="sr-only">
 					{t('search')}
 				</Label>
 				<Input
 					placeholder={t('Search...')}
-					className="w-full pl-8 text-sm"
+					className="size-8 w-full pl-6 text-xs"
 					autoFocus
 					{...getInputProps(fields.search, { type: 'search' })}
 				/>
@@ -417,7 +409,7 @@ function UserFiltersForm() {
 				{...getSelectProps(fields.dateFrom)}
 				defaultValue={fields.dateFrom.initialValue}
 			>
-				<SelectTrigger className="items-start">
+				<SelectTrigger size="sm">
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>
@@ -431,9 +423,9 @@ function UserFiltersForm() {
 			</Select>
 			<MultiSelect
 				name="roles"
+				className="h-8"
 				// label={`${t('users.roles')}:`}
 				variant="secondary"
-				className="max-w-[250px]"
 				options={roles.map((role) => ({
 					value: role.name,
 					label: role.name,
@@ -448,17 +440,16 @@ function UserFiltersForm() {
 					{...getSelectProps(fields.sortBy)}
 					defaultValue={fields.sortBy.initialValue}
 				>
-					<SelectTrigger className="items-start">
+					<SelectTrigger className="max-w-[250px]" size="sm">
 						<span className="text-muted-foreground">{t('users.sortBy')}:</span>
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="name">{t('users.sortBy.name')}</SelectItem>
 						<SelectItem value="email">{t('users.sortBy.email')}</SelectItem>
-						<SelectItem value="session">
-							{t('users.sortBy.sessionCount')}
+						<SelectItem value="createdAt">
+							{t('users.sortBy.createdAt')}
 						</SelectItem>
-						<SelectItem value="date">{t('users.sortBy.createdAt')}</SelectItem>
 						<SelectItem value="updatedAt">
 							{t('users.sortBy.updatedAt')}
 						</SelectItem>
@@ -472,6 +463,7 @@ function UserFiltersForm() {
 							name="order"
 							value={nextOrder}
 							size="icon"
+							className="h-8"
 							onClick={() => {
 								setOrder(nextOrder)
 								handleFormChange()
@@ -479,7 +471,11 @@ function UserFiltersForm() {
 						>
 							<input type="hidden" value={order} name="order" />
 							<AccessibleIcon label="Sort order">
-								{fields.order.value === 'desc' ? <ArrowDown /> : <ArrowUp />}
+								{fields.order.value === 'desc' ? (
+									<ArrowDownNarrowWide />
+								) : (
+									<ArrowUpNarrowWide />
+								)}
 							</AccessibleIcon>
 						</Button>
 					</TooltipTrigger>
@@ -631,71 +627,27 @@ function UsersTable() {
 						</TableRow>
 					</TableFooter>
 				</Table>
-				<DeleteUserDialog
-					user={
-						(activeDialog?.name === 'delete' && activeDialog?.user) || undefined
-					}
-					onSubmit={() => setActiveDialog(undefined)}
-				/>
-				<SignOutUserSessionsDialog
-					user={
-						(activeDialog?.name === 'signOutSessions' && activeDialog?.user) ||
-						undefined
-					}
-					onSubmit={() => setActiveDialog(undefined)}
-				/>
+				{!!(activeDialog?.name === 'delete' && activeDialog?.user) && (
+					<DeleteUserDialog
+						user={
+							(activeDialog?.name === 'delete' && activeDialog?.user) ||
+							undefined
+						}
+						onSubmit={() => setActiveDialog(undefined)}
+					/>
+				)}
+				{!!(activeDialog?.name === 'signOutSessions' && activeDialog?.user) && (
+					<SignOutUserSessionsDialog
+						user={
+							(activeDialog?.name === 'signOutSessions' &&
+								activeDialog?.user) ||
+							undefined
+						}
+						onSubmit={() => setActiveDialog(undefined)}
+					/>
+				)}
 			</>
 		)
-	)
-}
-
-function UserActionsDropdown({
-	user,
-	onSelectDelete,
-	onSelectSignOutSessions,
-}: {
-	user: UserRow
-	onSelectDelete: () => void
-	onSelectSignOutSessions: () => void
-}) {
-	const { t } = useTranslation()
-
-	return (
-		<DropdownMenu>
-			<Tooltip delayDuration={400}>
-				<TooltipTrigger className="text-left" asChild>
-					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" className="h-8 w-8 p-0">
-							<AccessibleIcon label="Actions">
-								<MoreHorizontal />
-							</AccessibleIcon>
-						</Button>
-					</DropdownMenuTrigger>
-				</TooltipTrigger>
-				<TooltipContent>Actions</TooltipContent>
-			</Tooltip>
-			<DropdownMenuContent align="end">
-				<Link to={`/admin/users/${user.username}`}>
-					<Button variant="ghost" className="size-full justify-start p-0">
-						<DropdownMenuItem className="w-full">
-							<UserPen />
-							{t('users.edit')}
-						</DropdownMenuItem>
-					</Button>
-				</Link>
-				<DropdownMenuItem
-					onSelect={onSelectSignOutSessions}
-					disabled={user.sessions.length === 0}
-				>
-					<LogOut />
-					{t('users.signOutOfAllSessions')}
-				</DropdownMenuItem>
-				<DropdownMenuItem variant="destructive" onSelect={onSelectDelete}>
-					<Trash />
-					{t('users.delete')}
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
 	)
 }
 
@@ -797,6 +749,57 @@ function SignOutUserSessionsDialog({
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
+	)
+}
+
+function UserActionsDropdown({
+	user,
+	onSelectDelete,
+	onSelectSignOutSessions,
+}: {
+	user: UserRow
+	onSelectDelete: () => void
+	onSelectSignOutSessions: () => void
+}) {
+	const { t } = useTranslation()
+
+	return (
+		<DropdownMenu>
+			<Tooltip delayDuration={400}>
+				<TooltipTrigger className="text-left" asChild>
+					<DropdownMenuTrigger asChild>
+						<Button variant="ghost" className="h-8 w-8 p-0">
+							<AccessibleIcon label="Actions">
+								<MoreHorizontal />
+							</AccessibleIcon>
+						</Button>
+					</DropdownMenuTrigger>
+				</TooltipTrigger>
+				<TooltipContent>Actions</TooltipContent>
+			</Tooltip>
+			<DropdownMenuContent align="end">
+				<Link to={`/admin/users/${user.username}`}>
+					<Button variant="ghost" className="size-full justify-start p-0">
+						<DropdownMenuItem className="w-full">
+							<UserPen />
+							{t('users.edit')}
+						</DropdownMenuItem>
+					</Button>
+				</Link>
+				<DropdownMenuItem
+					onSelect={onSelectSignOutSessions}
+					disabled={user.sessions.length === 0}
+				>
+					<LogOut />
+					{t('users.signOutOfAllSessions')}
+				</DropdownMenuItem>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem variant="destructive" onSelect={onSelectDelete}>
+					<Trash />
+					{t('users.delete')}
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	)
 }
 
