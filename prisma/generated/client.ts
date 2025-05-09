@@ -76,7 +76,7 @@ const config: runtime.GetPrismaClientConfig = {
 		},
 		output: {
 			value:
-				'/Users/vazmer/WebstormProjects/react-router-base/src/generated/prisma',
+				'/Users/vazmer/WebstormProjects/react-router-base/prisma/generated',
 			fromEnvVar: null,
 		},
 		config: {
@@ -95,12 +95,12 @@ const config: runtime.GetPrismaClientConfig = {
 			'/Users/vazmer/WebstormProjects/react-router-base/prisma/schema.prisma',
 		isCustomOutput: true,
 	},
-	relativePath: '../../../prisma',
+	relativePath: '..',
 	clientVersion: '6.6.0',
 	engineVersion: 'f676762280b54cd07c770017ed3711ddde35f37a',
 	datasourceNames: ['db'],
 	activeProvider: 'postgresql',
-	postinstall: true,
+	postinstall: false,
 	inlineDatasources: {
 		db: {
 			url: {
@@ -110,9 +110,9 @@ const config: runtime.GetPrismaClientConfig = {
 		},
 	},
 	inlineSchema:
-		'generator client {\n  provider        = "prisma-client"\n  output          = "../src/generated/prisma"\n  moduleFormat    = "esm"\n  previewFeatures = ["typedSql"]\n}\n\ndatasource db {\n  provider = "postgresql"\n  url      = env("DATABASE_URL")\n}\n\nmodel User {\n  id          String       @id @default(cuid())\n  email       String       @unique\n  username    String       @unique\n  name        String?\n  createdAt   DateTime     @default(now())\n  updatedAt   DateTime     @updatedAt\n  connections Connection[]\n  passkey     Passkey[]\n  password    Password?\n  sessions    Session[]\n  image       UserImage?\n  roles       Role[]       @relation("RoleToUser")\n}\n\nmodel UserImage {\n  id        String   @id @default(cuid())\n  altText   String?\n  objectKey String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n  userId    String   @unique\n  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n}\n\nmodel Password {\n  hash          String\n  userId        String  @unique\n  requiredReset Boolean @default(false)\n  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)\n}\n\nmodel Session {\n  id             String   @id @default(cuid())\n  expirationDate DateTime\n  createdAt      DateTime @default(now())\n  updatedAt      DateTime @updatedAt\n  userId         String\n  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@index([userId])\n}\n\nmodel Permission {\n  id          String   @id @default(cuid())\n  action      String\n  entity      String\n  access      String\n  description String   @default("")\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n  roles       Role[]   @relation("PermissionToRole")\n\n  @@unique([action, entity, access])\n}\n\nmodel Role {\n  id          String       @id @default(cuid())\n  name        String       @unique\n  description String       @default("")\n  createdAt   DateTime     @default(now())\n  updatedAt   DateTime     @updatedAt\n  permissions Permission[] @relation("PermissionToRole")\n  users       User[]       @relation("RoleToUser")\n}\n\nmodel Verification {\n  id        String    @id @default(cuid())\n  createdAt DateTime  @default(now())\n  /// The type of verification, e.g. "email" or "phone"\n  type      String\n  /// The thing we\'re trying to verify, e.g. a user\'s email or phone number\n  target    String\n  /// The secret key used to generate the otp\n  secret    String\n  /// The algorithm used to generate the otp\n  algorithm String\n  /// The number of digits in the otp\n  digits    Int\n  /// The number of seconds the otp is valid for\n  period    Int\n  /// The valid characters for the otp\n  charSet   String\n  /// When it\'s safe to delete this verification\n  expiresAt DateTime?\n\n  @@unique([target, type])\n}\n\nmodel Connection {\n  id           String   @id @default(cuid())\n  providerName String\n  providerId   String\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n  userId       String\n  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@unique([providerName, providerId])\n}\n\nmodel Passkey {\n  id             String   @id\n  aaguid         String\n  createdAt      DateTime @default(now())\n  updatedAt      DateTime @updatedAt\n  publicKey      Bytes\n  userId         String\n  webauthnUserId String\n  counter        BigInt\n  deviceType     String\n  backedUp       Boolean\n  transports     String?\n  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@index([userId])\n}\n',
+		'generator client {\n  provider        = "prisma-client"\n  output          = "generated"\n  moduleFormat    = "esm"\n  previewFeatures = ["typedSql"]\n}\n\ndatasource db {\n  provider = "postgresql"\n  url      = env("DATABASE_URL")\n}\n\nmodel User {\n  id          String       @id @default(cuid())\n  email       String       @unique\n  username    String       @unique\n  name        String?\n  createdAt   DateTime     @default(now())\n  updatedAt   DateTime     @updatedAt\n  connections Connection[]\n  passkey     Passkey[]\n  password    Password?\n  sessions    Session[]\n  image       UserImage?\n  roles       Role[]       @relation("RoleToUser")\n}\n\nmodel UserImage {\n  id        String   @id @default(cuid())\n  altText   String?\n  objectKey String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n  userId    String   @unique\n  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n}\n\nmodel Password {\n  hash          String\n  userId        String  @unique\n  requiredReset Boolean @default(false)\n  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)\n}\n\nmodel Session {\n  id             String   @id @default(cuid())\n  expirationDate DateTime\n  createdAt      DateTime @default(now())\n  updatedAt      DateTime @updatedAt\n  userId         String\n  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@index([userId])\n}\n\nmodel Permission {\n  id          String   @id @default(cuid())\n  action      String\n  entity      String\n  access      String\n  description String   @default("")\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n  roles       Role[]   @relation("PermissionToRole")\n\n  @@unique([action, entity, access])\n}\n\nmodel Role {\n  id          String       @id @default(cuid())\n  name        String       @unique\n  description String       @default("")\n  createdAt   DateTime     @default(now())\n  updatedAt   DateTime     @updatedAt\n  permissions Permission[] @relation("PermissionToRole")\n  users       User[]       @relation("RoleToUser")\n}\n\nmodel Verification {\n  id        String    @id @default(cuid())\n  createdAt DateTime  @default(now())\n  /// The type of verification, e.g. "email" or "phone"\n  type      String\n  /// The thing we\'re trying to verify, e.g. a user\'s email or phone number\n  target    String\n  /// The secret key used to generate the otp\n  secret    String\n  /// The algorithm used to generate the otp\n  algorithm String\n  /// The number of digits in the otp\n  digits    Int\n  /// The number of seconds the otp is valid for\n  period    Int\n  /// The valid characters for the otp\n  charSet   String\n  /// When it\'s safe to delete this verification\n  expiresAt DateTime?\n\n  @@unique([target, type])\n}\n\nmodel Connection {\n  id           String   @id @default(cuid())\n  providerName String\n  providerId   String\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n  userId       String\n  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@unique([providerName, providerId])\n}\n\nmodel Passkey {\n  id             String   @id\n  aaguid         String\n  createdAt      DateTime @default(now())\n  updatedAt      DateTime @updatedAt\n  publicKey      Bytes\n  userId         String\n  webauthnUserId String\n  counter        BigInt\n  deviceType     String\n  backedUp       Boolean\n  transports     String?\n  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@index([userId])\n}\n',
 	inlineSchemaHash:
-		'b8dfbf3e0fad8515a7ba53fe577f0eb05c8614029ea1a6a7b62fab0bbb264036',
+		'ec371b86ec864202604f3480a0ef296843041dddc78f4c2bcbf7fabfce2fb961',
 	copyEngine: true,
 	runtimeDataModel: {
 		models: {},
@@ -134,11 +134,11 @@ config.compilerWasm = undefined
 path.join(__dirname, 'libquery_engine-darwin-arm64.dylib.node')
 path.join(
 	process.cwd(),
-	'src/generated/prisma/libquery_engine-darwin-arm64.dylib.node',
+	'prisma/generated/libquery_engine-darwin-arm64.dylib.node',
 )
 // file annotations for bundling tools to include these files
 path.join(__dirname, 'schema.prisma')
-path.join(process.cwd(), 'src/generated/prisma/schema.prisma')
+path.join(process.cwd(), 'prisma/generated/schema.prisma')
 
 interface PrismaClientConstructor {
 	/**
@@ -282,7 +282,7 @@ export interface PrismaClient<
 	 * Executes a typed SQL query and returns a typed result
 	 * @example
 	 * ```
-	 * import { myQuery } from '@/prisma/generated/client.ts/sql'
+	 * import { myQuery } from '@prisma/client/sql'
 	 *
 	 * const result = await prisma.$queryRawTyped(myQuery())
 	 * ```
