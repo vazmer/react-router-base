@@ -5,6 +5,7 @@ import {
 	useForm,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { invariantResponse } from '@epic-web/invariant'
 import { type Prisma } from '@prisma/client'
 import { AccessibleIcon } from '@radix-ui/react-accessible-icon'
 import { type Duration, formatDistanceToNow, intlFormat, sub } from 'date-fns'
@@ -19,13 +20,30 @@ import {
 	Trash,
 	UserPen,
 } from 'lucide-react'
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { data, Form, Link, useLoaderData, useSubmit } from 'react-router'
+import {
+	data,
+	Form,
+	Link,
+	useFetcher,
+	useLoaderData,
+	useSubmit,
+} from 'react-router'
 import { z } from 'zod'
 import { type Route } from './+types/_index'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { PaginationBar } from '@/components/pagination-bar.tsx'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/alert-dialog.tsx'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { Button, buttonVariants } from '@/components/ui/button.tsx'
@@ -46,6 +64,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select.tsx'
+import { StatusButton } from '@/components/ui/status-button.tsx'
 import {
 	Table,
 	TableBody,
@@ -61,11 +80,11 @@ import {
 	TooltipTrigger,
 } from '@/components/ui/tooltip.tsx'
 import { cn } from '@/lib/utils.ts'
-import { DeleteUserDialog } from '@/routes/admin+/users+/_actions+/delete.tsx'
-import { SignOutSessionsDialog } from '@/routes/admin+/users+/_actions+/sign-out-sessions.tsx'
 import { prisma } from '@/utils/db.server.ts'
 import { getDateFnsLocale } from '@/utils/i18next.server.ts'
 import { getInitials, getUserImgSrc, useDebounce } from '@/utils/misc.tsx'
+import { requireUserWithPermission } from '@/utils/permission.server.ts'
+import { redirectWithToast } from '@/utils/toast.server.ts'
 
 const PaginationSchema = z.object({
 	skip: z.number().default(0),
@@ -256,6 +275,63 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 			},
 		})),
 		totalUsers,
+	})
+}
+
+const signOutOfSessionsActionIntent = 'sign-out-of-sessions'
+const deleteDataActionIntent = 'delete-user'
+
+export async function action({ request }: Route.ActionArgs) {
+	await requireUserWithPermission(request, 'delete:user')
+	const formData = await request.formData()
+	const intent = formData.get('intent')
+	const userId = formData.get('userId')
+	invariantResponse(typeof userId === 'string', 'userId must be a string')
+
+	switch (intent) {
+		case signOutOfSessionsActionIntent: {
+			return signOutOfSessionsAction({ userId, request })
+		}
+		case deleteDataActionIntent: {
+			return deleteUserAction({ userId, request })
+		}
+		default: {
+			throw new Response(`Invalid intent "${intent}"`, { status: 400 })
+		}
+	}
+}
+
+async function signOutOfSessionsAction({
+	request,
+	userId,
+}: {
+	request: Request
+	userId: string
+}) {
+	await prisma.session.deleteMany({
+		where: {
+			userId,
+		},
+	})
+	return redirectWithToast(request.url, {
+		type: 'success',
+		title: 'All sessions logged out',
+		description: 'The user has been successfully logged out from all sessions.',
+	})
+}
+
+async function deleteUserAction({
+	userId,
+	request,
+}: {
+	request: Request
+	userId: string
+}) {
+	await prisma.user.delete({ where: { id: userId } })
+	return redirectWithToast(request.url, {
+		type: 'success',
+		title: 'User Deleted',
+		description: 'The user has been successfully deleted from the system.',
 	})
 }
 
@@ -553,18 +629,124 @@ function UsersTable() {
 				</Table>
 				{!!(activeDialog?.name === 'delete' && activeDialog?.user) && (
 					<DeleteUserDialog
-						user={activeDialog.user}
-						onClose={() => setActiveDialog(undefined)}
+						user={
+							(activeDialog?.name === 'delete' && activeDialog?.user) || undefined
+						}
+						onSubmit={() => setActiveDialog(undefined)}
 					/>
 				)}
 				{!!(activeDialog?.name === 'signOutSessions' && activeDialog?.user) && (
-					<SignOutSessionsDialog
-						user={activeDialog.user}
-						onClose={() => setActiveDialog(undefined)}
+					<SignOutUserSessionsDialog
+						user={
+							(activeDialog?.name === 'signOutSessions' && activeDialog?.user) ||
+							undefined
+						}
+						onSubmit={() => setActiveDialog(undefined)}
 					/>
 				)}
 			</>
 		)
+	)
+}
+
+function DeleteUserDialog({
+	user,
+	onSubmit,
+}: {
+	user?: UserRow
+	onSubmit: () => void
+}) {
+	const [open, setOpen] = useState(!!user)
+	const fetcher = useFetcher<typeof deleteUserAction>()
+
+	useEffect(() => {
+		setOpen(!!user)
+	}, [user])
+
+	return (
+		<AlertDialog open={open} onOpenChange={setOpen}>
+			<AlertDialogContent aria-label={user && `Delete user ${user.name}`}>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+					{user && (
+						<AlertDialogDescription>
+							This action cannot be undone. This will permanently delete{' '}
+							<b>{user.name}</b> from our servers.
+						</AlertDialogDescription>
+					)}
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel>Cancel</AlertDialogCancel>
+					<fetcher.Form method="POST" onSubmit={() => onSubmit()}>
+						<AlertDialogAction asChild>
+							<>
+								<StatusButton
+									type="submit"
+									name="intent"
+									value={deleteDataActionIntent}
+									variant="destructive"
+									status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
+								>
+									Delete
+								</StatusButton>
+								{<input type="hidden" name="userId" value={user?.id} />}
+							</>
+						</AlertDialogAction>
+					</fetcher.Form>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
+	)
+}
+function SignOutUserSessionsDialog({
+	user,
+	onSubmit,
+}: {
+	user?: UserRow
+	onSubmit: () => void
+}) {
+	const [open, setOpen] = useState(!!user)
+	const fetcher = useFetcher<typeof deleteUserAction>()
+
+	useEffect(() => {
+		setOpen(!!user)
+	}, [user])
+
+	return (
+		<AlertDialog open={open} onOpenChange={setOpen}>
+			<AlertDialogContent
+				aria-label={user && `Sign out of all ${user.name} sessions`}
+			>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+					{user && (
+						<AlertDialogDescription>
+							This action will sign out of all <b>{user.name}</b> sessions (
+							{user?.sessions.length}).
+						</AlertDialogDescription>
+					)}
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel>Cancel</AlertDialogCancel>
+					<fetcher.Form method="POST" onSubmit={() => onSubmit()}>
+						<AlertDialogAction asChild>
+							<>
+								<StatusButton
+									type="submit"
+									name="intent"
+									value={signOutOfSessionsActionIntent}
+									variant="destructive"
+									status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
+								>
+									Sign out all sessions
+								</StatusButton>
+								{<input type="hidden" name="userId" value={user?.id} />}
+							</>
+						</AlertDialogAction>
+					</fetcher.Form>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	)
 }
 
