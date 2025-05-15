@@ -17,7 +17,7 @@
     "format": "prettier --write .",
     "lint": "eslint .",
     "start": "cross-env NODE_ENV=production node .",
-    "setup": "prisma generate && node prisma/fix-prisma-types.cjs && prisma migrate deploy && prisma db seed",
+    "setup": "prisma generate && prisma migrate deploy && prisma db seed",
     "typecheck": "react-router typegen && tsc",
     "validate": "run-p lint typecheck",
     "prepare": "husky"
