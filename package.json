@@ -17,7 +17,7 @@
     "format": "prettier --write .",
     "lint": "eslint .",
     "start": "cross-env NODE_ENV=production node .",
-    "setup": "prisma generate && node prisma/fix-prisma-types.cjs && prisma migrate deploy && prisma db seed",
+    "setup": "prisma generate && prisma migrate deploy && prisma db seed",
     "typecheck": "react-router typegen && tsc",
     "validate": "run-p lint typecheck",
     "prepare": "husky"
@@ -97,7 +97,7 @@
     "morgan": "^1.10.0",
     "npm-run-all": "^4.1.5",
     "openimg": "^0.6.0",
-    "prisma": "^6.4.1",
+    "prisma": "^6.8.0",
     "process": "^0.11.10",
     "react": "19.0.0",
     "react-dom": "19.0.0",
