@@ -83,7 +83,7 @@ export function LanguageDropDown() {
 	return (
 		<fetcher.Form
 			ref={formRef}
-			method="POST"
+			method="PUT"
 			action="/resources/change-language"
 			{...getFormProps(form)}
 		>

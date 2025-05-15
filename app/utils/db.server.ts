@@ -1,6 +1,6 @@
 import { styleText } from 'node:util'
 import { remember } from '@epic-web/remember'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@/prisma/generated'
 
 export const prisma = remember('prisma', () => {
 	// NOTE: if you change anything in this function you'll need to restart
