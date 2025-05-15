@@ -27,6 +27,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, './app'),
+			'@prisma/generated': path.resolve(__dirname, './prisma/generated'),
 			'@svg': path.resolve(__dirname, './other/svg-icons'),
 			'@tests': path.resolve(__dirname, './tests'),
 		},

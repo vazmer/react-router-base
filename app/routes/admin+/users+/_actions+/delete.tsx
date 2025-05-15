@@ -1,4 +1,5 @@
 import { invariantResponse } from '@epic-web/invariant'
+import { type User } from '@prisma/generated/client.ts'
 import React, { useEffect, useRef, useState } from 'react'
 import { useFetcher, useSubmit } from 'react-router'
 import { type Route } from './+types/delete'
@@ -14,7 +15,6 @@ import {
 } from '@/components/ui/alert-dialog.tsx'
 import { buttonVariants } from '@/components/ui/button.tsx'
 import { StatusButton } from '@/components/ui/status-button.tsx'
-import { type User } from '@/prisma/generated/client.ts'
 import { prisma } from '@/utils/db.server.ts'
 import { requireUserWithPermission } from '@/utils/permission.server.ts'
 import { useRequestInfo } from '@/utils/request-info.ts'

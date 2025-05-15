@@ -1,5 +1,5 @@
+import { type Prisma } from '@prisma/generated/client.ts'
 import { createPassword, createUser, getUserImages } from '@tests/db.utils'
-import { type Prisma } from '@/prisma/generated/client.ts'
 import { prisma } from '@/utils/db.server.ts'
 
 async function seed() {
