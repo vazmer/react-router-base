@@ -4,8 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "imports": {
-    "@/*": "./app/*",
-    "@prisma/generated/*": "./prisma/generated/*"
+    "@/*": "./app/*"
   },
   "scripts": {
     "build": "run-s build:*",
