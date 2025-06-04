@@ -5,7 +5,7 @@ import { useFormAction, useNavigation } from 'react-router'
 export function getUserImgSrc(objectKey?: string | null) {
 	return objectKey
 		? `/resources/images?objectKey=${encodeURIComponent(objectKey)}`
-		: '/img/user.png'
+		: undefined
 }
 
 export function getImgSrc({

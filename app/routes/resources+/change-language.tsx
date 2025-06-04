@@ -2,7 +2,7 @@ import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import { Languages } from 'lucide-react'
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import Flag from 'react-flagkit'
 import { useTranslation } from 'react-i18next'
 import {
@@ -65,20 +65,25 @@ export function LanguageDropDown() {
 
 	const [form, fields] = useForm({
 		id: 'change-language',
-		defaultValue: { lng: i18n.language, redirectTo: requestInfo.path },
+		defaultValue: { lng: requestInfo.locale, redirectTo: requestInfo.path },
 		constraint: getZodConstraint(ChangeLanguageSchema),
 		lastResult: actionData?.result,
 	})
 
 	const handleFormChange = async (lng: LngSchema) => {
+		setSelectedLanguage(lng)
 		await i18n.changeLanguage(lng)
 		await submit(formRef.current)
 	}
 
+	const [selectedLanguage, setSelectedLanguage] = useState<LngSchema>(
+		requestInfo.locale,
+	)
+
 	return (
 		<fetcher.Form
 			ref={formRef}
-			method="POST"
+			method="PUT"
 			action="/resources/change-language"
 			{...getFormProps(form)}
 		>
@@ -87,7 +92,7 @@ export function LanguageDropDown() {
 				value={requestInfo.path}
 				type="hidden"
 			/>
-			<input name={fields.lng.name} value={i18n.language} type="hidden" />
+			<input name={fields.lng.name} value={selectedLanguage} type="hidden" />
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button
@@ -100,7 +105,7 @@ export function LanguageDropDown() {
 				</DropdownMenuTrigger>
 				<DropdownMenuContent>
 					<DropdownMenuRadioGroup
-						value={i18n.language}
+						value={selectedLanguage}
 						onValueChange={(lng) => handleFormChange(lng as LngSchema)}
 					>
 						<DropdownMenuRadioItem value="sr">

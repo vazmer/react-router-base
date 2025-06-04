@@ -4,30 +4,51 @@ import { type Route } from './+types/$username'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { Separator } from '@/components/ui/separator.tsx'
 import { UserForm } from '@/routes/admin+/users+/__user-form.tsx'
-import { prisma } from '@/utils/db.server.ts'
+import { tenantPrisma } from '@/utils/db.server.ts'
 
 export { action } from './__user-form.server.tsx'
 
-export async function loader({ params }: Route.LoaderArgs) {
-	const user = await prisma.user.findUnique({
+export const handle = {
+	breadcrumb: ({
+		match,
+	}: {
+		match: { data: Route.ComponentProps['loaderData'] }
+	}) => match.data?.user.name,
+}
+
+export const meta: Route.MetaFunction = ({ data, params }) => {
+	const displayName = data?.user.name ?? params.username
+	return [
+		{ title: `${displayName} | ${ENV.APP_NAME} Administration` },
+		{
+			name: 'description',
+			content: `Profile of ${displayName} on App Administration`,
+		},
+	]
+}
+
+export async function loader({ params, request }: Route.LoaderArgs) {
+	const user = await (
+		await tenantPrisma(request)
+	).user.findUnique({
 		select: {
 			id: true,
 			name: true,
 			username: true,
 			email: true,
+			roles: { select: { id: true, name: true } },
 			image: { select: { id: true, objectKey: true } },
 		},
 		where: {
 			username: params.username,
 		},
 	})
-
 	invariantResponse(user, 'User not found', { status: 404 })
 
 	return { user }
 }
 
-export default function User({
+export default function UserRoute({
 	loaderData,
 	actionData,
 	params,
@@ -49,25 +70,6 @@ export default function User({
 			/>
 		</div>
 	)
-}
-
-export const handle = {
-	breadcrumb: ({
-		match,
-	}: {
-		match: { data: Route.ComponentProps['loaderData'] }
-	}) => match.data?.user.name,
-}
-
-export const meta: Route.MetaFunction = ({ data, params }) => {
-	const displayName = data?.user.name ?? params.username
-	return [
-		{ title: `${displayName} | Rr App Administration` },
-		{
-			name: 'description',
-			content: `Profile of ${displayName} on App Administration`,
-		},
-	]
 }
 
 export function ErrorBoundary() {

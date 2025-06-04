@@ -30,7 +30,7 @@ function validateAuth(headers: Headers) {
 	return authHeader.includes(`Credential=${STORAGE_ACCESS_KEY}/`)
 }
 
-function assertKey(key: any): asserts key is Array<string> {
+function assertKey(key: unknown): asserts key is Array<string> {
 	invariantResponse(
 		Array.isArray(key) && key.length && key.every((k) => typeof k === 'string'),
 		'Key must contain a directory',

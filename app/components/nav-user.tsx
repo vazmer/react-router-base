@@ -1,6 +1,6 @@
-import { ChevronsUpDown, LogOut } from 'lucide-react'
+import { ChevronsUpDown, LogOut, UserPen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Form } from 'react-router'
+import { Form, NavLink } from 'react-router'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import {
@@ -44,6 +44,7 @@ function UserDropdownItem() {
 
 export function NavUser() {
 	const { t } = useTranslation()
+	const user = useUser()
 	return (
 		<SidebarMenu>
 			<SidebarMenuItem>
@@ -69,11 +70,23 @@ export function NavUser() {
 							</div>
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
+						<NavLink to={`/admin/users/${user.username}`}>
+							<Button
+								type="submit"
+								variant="ghost"
+								className="size-full justify-start p-0"
+							>
+								<DropdownMenuItem className="w-full">
+									<UserPen />
+									{t('sidebar.editProfile')}
+								</DropdownMenuItem>
+							</Button>
+						</NavLink>
 						<Form action="/logout" method="POST">
 							<Button
 								type="submit"
 								variant="ghost"
-								className="h-full w-full justify-start p-0"
+								className="size-full justify-start p-0"
 							>
 								<DropdownMenuItem className="w-full">
 									<LogOut />

@@ -10,6 +10,7 @@ swap_size_mb = 512
   PORT = "8080"
   METRICS_PORT = "8081"
   NODE_OPTIONS = '--max-old-space-size=4096'
+  APP_NAME = 'Rr App'
 
 [metrics]
   port = 8081
@@ -28,7 +29,7 @@ swap_size_mb = 512
 
 [[services]]
   internal_port = 8080
-  auto_stop_machines = true
+  auto_stop_machines = false
   processes = ["app"]
   protocol = "tcp"
   script_checks = []

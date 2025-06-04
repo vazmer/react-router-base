@@ -3,6 +3,7 @@ import { Outlet } from 'react-router'
 import { type Route } from './+types/_route'
 import { AppSidebar } from '@/components/app-sidebar.tsx'
 import { Breadcrumbs } from '@/components/breadcrumbs.tsx'
+import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { Separator } from '@/components/ui/separator.tsx'
 import {
 	SidebarInset,
@@ -47,5 +48,15 @@ export default function App() {
 				</div>
 			</SidebarInset>
 		</SidebarProvider>
+	)
+}
+
+export function ErrorBoundary() {
+	return (
+		<GeneralErrorBoundary
+			statusHandlers={{
+				403: () => <p>You are not allowed to access this page</p>,
+			}}
+		/>
 	)
 }

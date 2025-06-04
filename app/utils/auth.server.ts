@@ -1,4 +1,5 @@
-import { type Password, type User } from '@prisma/client'
+import crypto from 'node:crypto'
+import { type Password, type User } from '@prisma/generated/client.ts'
 import bcrypt from 'bcryptjs'
 import { redirect } from 'react-router'
 import { safeRedirect } from 'remix-utils/safe-redirect'
@@ -11,6 +12,7 @@ export const getSessionExpirationDate = () =>
 	new Date(Date.now() + SESSION_EXPIRATION_TIME)
 
 export const sessionKey = 'sessionId'
+export const sessionTenantIdKey = 'tenantId'
 
 export async function getUserId(request: Request) {
 	const authSession = await authSessionStorage.getSession(
@@ -78,6 +80,42 @@ export async function login({
 	return session
 }
 
+export async function signup({
+	email,
+	username,
+	password,
+	name,
+}: {
+	email: User['email']
+	username: User['username']
+	name: User['name']
+	password: string
+}) {
+	const hashedPassword = await getPasswordHash(password)
+
+	const session = await prisma.session.create({
+		data: {
+			expirationDate: getSessionExpirationDate(),
+			user: {
+				create: {
+					email: email.toLowerCase(),
+					username: username.toLowerCase(),
+					name,
+					roles: { connect: { name: 'user' } },
+					password: {
+						create: {
+							hash: hashedPassword,
+						},
+					},
+				},
+			},
+		},
+		select: { id: true, expirationDate: true },
+	})
+
+	return session
+}
+
 export async function resetUserPassword({
 	username,
 	password,
@@ -92,6 +130,7 @@ export async function resetUserPassword({
 			password: {
 				update: {
 					hash: hashedPassword,
+					requiredReset: false,
 				},
 			},
 		},
@@ -150,4 +189,40 @@ export async function verifyUserPassword(
 	}
 
 	return { id: userWithPassword.id }
+}
+
+export function getPasswordHashParts(password: string) {
+	const hash = crypto
+		.createHash('sha1')
+		.update(password, 'utf8')
+		.digest('hex')
+		.toUpperCase()
+	return [hash.slice(0, 5), hash.slice(5)] as const
+}
+
+export async function checkIsCommonPassword(password: string) {
+	const [prefix, suffix] = getPasswordHashParts(password)
+
+	try {
+		const response = await fetch(
+			`https://api.pwnedpasswords.com/range/${prefix}`,
+			{ signal: AbortSignal.timeout(1000) },
+		)
+
+		if (!response.ok) return false
+
+		const data = await response.text()
+		return data.split(/\r?\n/).some((line) => {
+			const [hashSuffix] = line.split(':')
+			return hashSuffix === suffix
+		});
+	} catch (error) {
+		if (error instanceof DOMException && error.name === 'TimeoutError') {
+			console.warn('Password check timed out')
+			return false
+		}
+
+		console.warn('Unknown error during password check', error)
+		return false
+	}
 }

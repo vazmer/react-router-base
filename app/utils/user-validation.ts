@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { type SuperRefinement, z } from 'zod'
 
 export const USERNAME_MIN_LENGTH = 3
 export const USERNAME_MAX_LENGTH = 20
@@ -42,19 +42,37 @@ export const EmailSchema = z
 	.transform((value) => value.toLowerCase())
 
 export const RolesSchema = z
-	.enum(['admin', 'user'], {
-		required_error: 'Role is required',
-	})
-	.array()
+	.array(z.enum(['admin', 'user']))
+	.nonempty({ message: 'Role is required' })
 
-export const PasswordAndConfirmPasswordSchema = z
-	.object({ password: PasswordSchema, confirmPassword: PasswordSchema })
-	.superRefine(({ confirmPassword, password }, ctx) => {
-		if (confirmPassword !== password) {
-			ctx.addIssue({
-				path: ['confirmPassword'],
-				code: 'custom',
-				message: 'The passwords must match',
-			})
-		}
-	})
+export const PasswordAndConfirmPasswordSchema = z.object({
+	password: PasswordSchema,
+	confirmPassword: PasswordSchema,
+})
+
+export const passwordAndConfirmRefine: SuperRefinement<
+	Partial<z.infer<typeof PasswordAndConfirmPasswordSchema>>
+> = (data, ctx) => {
+	if (data?.confirmPassword !== data?.password) {
+		ctx.addIssue({
+			path: ['confirmPassword'],
+			code: 'custom',
+			message: 'The passwords must match',
+		})
+	}
+}
+
+export const MAX_UPLOAD_SIZE = 1024 * 1024 * 3 // 3MB
+
+export const ImageFieldsetSchema = z.object({
+	id: z.string().optional(),
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine((file) => {
+			return !file || file.size <= MAX_UPLOAD_SIZE
+		}, 'File size must be less than 3MB'),
+	altText: z.string().optional(),
+})
+
+export type ImageFieldsetSchema = z.infer<typeof ImageFieldsetSchema>

@@ -1,6 +1,6 @@
 import { data } from 'react-router'
 import { requireUserId } from './auth.server.ts'
-import { prisma } from './db.server.ts'
+import { tenantPrisma } from './db.server.ts'
 import { type PermissionString, parsePermissionString } from './user.ts'
 
 export async function requireUserWithPermission(
@@ -9,7 +9,9 @@ export async function requireUserWithPermission(
 ) {
 	const userId = await requireUserId(request)
 	const permissionData = parsePermissionString(permission)
-	const user = await prisma.user.findFirst({
+	const user = await (
+		await tenantPrisma(request)
+	).user.findFirst({
 		select: { id: true },
 		where: {
 			id: userId,
@@ -42,7 +44,9 @@ export async function requireUserWithPermission(
 
 export async function requireUserWithRole(request: Request, name: string) {
 	const userId = await requireUserId(request)
-	const user = await prisma.user.findFirst({
+	const user = await (
+		await tenantPrisma(request)
+	).user.findFirst({
 		select: { id: true },
 		where: { id: userId, roles: { some: { name } } },
 	})
