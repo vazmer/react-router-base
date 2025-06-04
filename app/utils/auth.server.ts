@@ -12,6 +12,7 @@ export const getSessionExpirationDate = () =>
 	new Date(Date.now() + SESSION_EXPIRATION_TIME)
 
 export const sessionKey = 'sessionId'
+export const sessionTenantIdKey = 'tenantId'
 
 export async function getUserId(request: Request) {
 	const authSession = await authSessionStorage.getSession(
@@ -214,7 +215,7 @@ export async function checkIsCommonPassword(password: string) {
 		return data.split(/\r?\n/).some((line) => {
 			const [hashSuffix] = line.split(':')
 			return hashSuffix === suffix
-		})
+		});
 	} catch (error) {
 		if (error instanceof DOMException && error.name === 'TimeoutError') {
 			console.warn('Password check timed out')

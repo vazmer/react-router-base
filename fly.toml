@@ -29,7 +29,7 @@ swap_size_mb = 512
 
 [[services]]
   internal_port = 8080
-  auto_stop_machines = true
+  auto_stop_machines = false
   processes = ["app"]
   protocol = "tcp"
   script_checks = []

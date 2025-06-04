@@ -27,6 +27,9 @@ const viteDevServer = IS_PROD
 	: await import('vite').then((vite) =>
 			vite.createServer({
 				server: { middlewareMode: true },
+				// We tell Vite we are running a custom app instead of
+				// the SPA default so it doesn't run HTML middleware
+				appType: 'custom',
 			}),
 		)
 
@@ -53,7 +56,7 @@ app.use((req, res, next) => {
 
 // no ending slashes for SEO reasons
 // https://github.com/epicweb-dev/epic-stack/discussions/108
-app.get('*', (req, res, next) => {
+app.get(/(.*)/, (req, res, next) => {
 	if (req.path.endsWith('/') && req.path.length > 1) {
 		const query = req.url.slice(req.path.length)
 		const safepath = req.path.slice(0, -1).replace(/\/+/g, '/')
@@ -88,7 +91,7 @@ if (viteDevServer) {
 	app.use(express.static('build/client', { maxAge: '1h' }))
 }
 
-app.get(['/img/*', '/favicons/*'], (_req, res) => {
+app.get(['/img/*image', '/favicons/*image'], (_req, res) => {
 	// if we made it past the express.static for these, then we're missing something.
 	// So we'll just send a 404 and won't bother calling other middleware.
 	res.status(404).send('Not found')
@@ -199,12 +202,14 @@ if (!ALLOW_INDEXING) {
 }
 
 app.all(
-	'*',
+	/(.*)/,
 	createRequestHandler({
-		getLoadContext: (_: any, res: any) => ({
-			cspNonce: res.locals.cspNonce,
-			serverBuild: getBuild(),
-		}),
+		getLoadContext(_, res) {
+			return {
+				cspNonce: res.locals.cspNonce,
+				serverBuild: getBuild(),
+			}
+		},
 		mode: MODE,
 		build: async () => {
 			const { error, build } = await getBuild()

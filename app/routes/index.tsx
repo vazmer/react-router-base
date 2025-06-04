@@ -1,6 +1,14 @@
-import { Construction, LogIn, LogOut, ShieldAlert } from 'lucide-react'
+import {
+	Construction,
+	LogIn,
+	LogOut,
+	ShieldAlert,
+	Terminal,
+} from 'lucide-react'
+import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Form, Link } from 'react-router'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert.tsx'
 import { Button, buttonVariants } from '@/components/ui/button.tsx'
 import { cn } from '@/lib/utils.ts'
 import { useOptionalUser } from '@/utils/user.ts'
@@ -62,16 +70,35 @@ export default function Index() {
 						</Form>
 					)}
 					{!user && (
-						<Link
-							to="/login"
-							className={cn(
-								buttonVariants({ variant: 'ghost' }),
-								'cursor-default',
-							)}
-						>
-							<LogIn />
-							{t('index.login')}
-						</Link>
+						<div className="flex flex-col justify-center gap-3">
+							<Alert>
+								<Terminal className="size-4" />
+								<AlertTitle>Try it out!</AlertTitle>
+								<AlertDescription>
+									<p>
+										Login using{' '}
+										<code className="bg-muted rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+											admin
+										</code>
+										{' / '}
+										<code className="bg-muted rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+											admin1234
+										</code>{' '}
+										to have a sneak peek at the administrative part of the app.
+									</p>
+								</AlertDescription>
+							</Alert>
+							<Link
+								to="/login"
+								className={cn(
+									buttonVariants({ variant: 'ghost' }),
+									'cursor-default',
+								)}
+							>
+								<LogIn />
+								{t('index.login')}
+							</Link>
+						</div>
 					)}
 				</div>
 			</div>

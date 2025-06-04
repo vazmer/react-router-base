@@ -26,7 +26,7 @@ import {
 } from '@/routes/resources+/theme-switch.tsx'
 import { getUserId, logout } from '@/utils/auth.server.ts'
 import { ClientHintCheck, getHints } from '@/utils/client-hints.tsx'
-import { prisma } from '@/utils/db.server.ts'
+import { tenantPrisma } from '@/utils/db.server.ts'
 import { getEnv } from '@/utils/env.server.ts'
 import { pipeHeaders } from '@/utils/headers.server.ts'
 import { honeypot } from '@/utils/honeypot.server.ts'
@@ -48,8 +48,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 	const user = userId
 		? await time(
-				() =>
-					prisma.user.findUnique({
+				async () =>
+					(await tenantPrisma(request)).user.findUnique({
 						select: {
 							id: true,
 							name: true,

@@ -80,7 +80,7 @@ import {
 	TooltipTrigger,
 } from '@/components/ui/tooltip.tsx'
 import { cn } from '@/lib/utils.ts'
-import { prisma } from '@/utils/db.server.ts'
+import { prisma, tenantPrisma } from '@/utils/db.server.ts'
 import { getDateFnsLocale } from '@/utils/i18next.server.ts'
 import { getInitials, getUserImgSrc, useDebounce } from '@/utils/misc.tsx'
 import { requireUserWithPermission } from '@/utils/permission.server.ts'
@@ -217,7 +217,7 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 
 	const [roles, users, totalUsers] = await prisma.$transaction([
 		prisma.role.findMany(),
-		prisma.user.findMany({
+		(await tenantPrisma(request)).user.findMany({
 			include: {
 				sessions: {
 					where: {
@@ -232,7 +232,7 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 			skip,
 			orderBy,
 		}),
-		prisma.user.count({
+		(await tenantPrisma(request)).user.count({
 			where: whereInput,
 		}),
 	])
@@ -327,7 +327,11 @@ async function deleteUserAction({
 	request: Request
 	userId: string
 }) {
-	await prisma.user.delete({ where: { id: userId } })
+	await (
+		await tenantPrisma(request)
+	).user.delete({
+		where: { id: userId },
+	})
 	return redirectWithToast(request.url, {
 		type: 'success',
 		title: 'User Deleted',
@@ -347,7 +351,7 @@ export default function UsersRoute() {
 						prefetch="intent"
 					>
 						<CirclePlus />
-						Add new
+						New user
 					</Link>
 				</div>
 			</div>

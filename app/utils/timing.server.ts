@@ -79,9 +79,9 @@ export function getServerTimeHeader(timings?: Timings) {
 				`dur=${dur}`,
 			]
 				.filter(Boolean)
-				.join(';')
+				.join(';');
 		})
-		.join(',')
+		.join(',');
 }
 
 export function combineServerTimings(headers1: Headers, headers2: Headers) {

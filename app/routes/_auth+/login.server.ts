@@ -1,7 +1,7 @@
 import { redirect } from 'react-router'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import { resetPasswordUsernameSessionKey } from '@/routes/_auth+/reset-password.tsx'
-import { sessionKey } from '@/utils/auth.server'
+import { sessionKey, sessionTenantIdKey } from '@/utils/auth.server'
 import { prisma } from '@/utils/db.server.ts'
 import { combineResponseInits } from '@/utils/misc'
 import { authSessionStorage } from '@/utils/session.server'
@@ -47,6 +47,7 @@ export async function handleNewSession(
 		request.headers.get('cookie'),
 	)
 	authSession.set(sessionKey, session.id)
+	authSession.set(sessionTenantIdKey, user?.tenantId)
 
 	if (!redirectTo) {
 		if (!!user?.roles.find((role) => role.name === 'admin')) {

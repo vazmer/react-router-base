@@ -9,7 +9,7 @@ import { useEffectEvent } from '@react-aria/utils'
 import React, { useEffect, useMemo, useState } from 'react'
 import { Form, useRouteLoaderData } from 'react-router'
 import { z } from 'zod'
-import { type Info as UsernameInfo } from './+types/$username.ts'
+import { type Route } from './+types/$username.ts'
 import {
 	CheckboxGroupField,
 	ErrorList,
@@ -49,9 +49,9 @@ function UserForm({
 	user,
 	actionData,
 }: {
-	user?: UsernameInfo['loaderData']['user']
-	actionData?: UsernameInfo['actionData']
-	params: UsernameInfo['params']
+	user?: Route.ComponentProps['loaderData']['user']
+	actionData?: Route.ComponentProps['actionData']
+	params: Route.ComponentProps['params']
 } & React.ComponentProps<'div'>) {
 	const isPending = useIsPending()
 	const loaderData = useRouteLoaderData<typeof loader>(

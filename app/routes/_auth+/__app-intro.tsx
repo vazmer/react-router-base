@@ -3,7 +3,7 @@ import { Separator } from '@/components/ui/separator.tsx'
 
 export function AppIntro() {
 	return (
-		<div className="m-2 flex rounded-4xl bg-gray-900 p-[10%] ring-10 ring-white/20 max-lg:hidden lg:mt-[10%] lg:mr-[30%] lg:mb-[-5%]">
+		<div className="m-2 flex rounded-4xl bg-gray-900 p-[10%] ring-10 ring-white/20 max-lg:hidden lg:mr-[30%]">
 			<div className="flex flex-col gap-10 text-sm text-gray-300">
 				<p className="text-gray-400">
 					An advanced React router app built on top of the Epic Web stack
@@ -86,12 +86,18 @@ export function AppIntro() {
 					</li>
 					<li className="flex">
 						<CheckItem />
+						<code className="ml-3 font-mono font-medium text-purple-400">
+							Multitenancy
+						</code>
+					</li>
+					<li className="flex">
+						<CheckItem />
 						<p className="ml-3">... and many more.</p>
 					</li>
 				</ul>
 				<p className="text-gray-400 max-md:hidden">
-					Perfect for learning how the framework works, or starting a new
-					project in no-time.
+					Perfect for learning the framework, or starting a new project in
+					no-time.
 				</p>
 				<Separator className="bg-gray-600" />
 				<p className="text-muted-foreground">

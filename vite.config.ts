@@ -1,6 +1,7 @@
 import path from 'path'
 import { reactRouter } from '@react-router/dev/vite'
 import tailwindcss from '@tailwindcss/vite'
+import { reactRouterDevTools } from 'react-router-devtools'
 import { defineConfig } from 'vite'
 import { envOnlyMacros } from 'vite-env-only'
 
@@ -13,7 +14,7 @@ export default defineConfig({
 		rollupOptions: {
 			external: [/node:.*/, 'fsevents'],
 		},
-		sourcemap: true,
+		sourcemap: 'hidden',
 	},
 	ssr: {
 		noExternal: ['remix-i18next'],
@@ -23,7 +24,12 @@ export default defineConfig({
 			ignored: ['**/playwright-report/**'],
 		},
 	},
-	plugins: [envOnlyMacros(), reactRouter(), tailwindcss()],
+	plugins: [
+		envOnlyMacros(),
+		reactRouterDevTools(),
+		reactRouter(),
+		tailwindcss(),
+	],
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, './app'),

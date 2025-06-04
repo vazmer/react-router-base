@@ -9,7 +9,7 @@ import { type Route } from './+types/$username.ts'
 import { UserFormSchema } from './__user-form'
 import { prepareVerification } from '@/routes/_auth+/verify.server.ts'
 import { checkIsCommonPassword, getPasswordHash } from '@/utils/auth.server.ts'
-import { prisma } from '@/utils/db.server.ts'
+import { prisma, tenantPrisma } from '@/utils/db.server.ts'
 import { sendEmail } from '@/utils/email.server.ts'
 import { uploadProfileImage } from '@/utils/storage.server.ts'
 import { createToastHeaders, redirectWithToast } from '@/utils/toast.server.ts'
@@ -105,7 +105,9 @@ export async function action({ request, params }: Route.ActionArgs) {
 		password,
 	} = submission.value
 
-	const user = await prisma.user.upsert({
+	const user = await (
+		await tenantPrisma(request)
+	).user.upsert({
 		select: {
 			id: true,
 			name: true,

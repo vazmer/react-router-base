@@ -4,7 +4,7 @@ import { UniqueEnforcer } from 'enforce-unique'
 
 const uniqueUsernameEnforcer = new UniqueEnforcer()
 
-export function createUser() {
+export function createUser(tenantId: string) {
 	const firstName = faker.person.firstName()
 	const lastName = faker.person.lastName()
 
@@ -23,6 +23,7 @@ export function createUser() {
 		.toLowerCase()
 		.replace(/[^a-z0-9_]/g, '_')
 	return {
+		tenantId,
 		username,
 		name: `${firstName} ${lastName}`,
 		email: `${username}@example.com`,

@@ -4,7 +4,7 @@ import { type Route } from './+types/$username'
 import { GeneralErrorBoundary } from '@/components/error-boundary.tsx'
 import { Separator } from '@/components/ui/separator.tsx'
 import { UserForm } from '@/routes/admin+/users+/__user-form.tsx'
-import { prisma } from '@/utils/db.server.ts'
+import { tenantPrisma } from '@/utils/db.server.ts'
 
 export { action } from './__user-form.server.tsx'
 
@@ -27,8 +27,10 @@ export const meta: Route.MetaFunction = ({ data, params }) => {
 	]
 }
 
-export async function loader({ params }: Route.LoaderArgs) {
-	const user = await prisma.user.findUnique({
+export async function loader({ params, request }: Route.LoaderArgs) {
+	const user = await (
+		await tenantPrisma(request)
+	).user.findUnique({
 		select: {
 			id: true,
 			name: true,
