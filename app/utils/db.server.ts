@@ -1,6 +1,6 @@
 import { styleText } from 'node:util'
 import { remember } from '@epic-web/remember'
-import { Prisma, PrismaClient, type Tenant } from '@prisma/generated/client'
+import { Prisma, PrismaClient, type Tenant } from '@prisma/generated/client.ts'
 import { sessionTenantIdKey } from '@/utils/auth.server.ts'
 import { authSessionStorage } from '@/utils/session.server.ts'
 
