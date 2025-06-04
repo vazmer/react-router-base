@@ -72,9 +72,8 @@ COPY --from=production-deps /myapp/node_modules /myapp/node_modules
 
 COPY --from=build /myapp/server-build /myapp/server-build
 COPY --from=build /myapp/build /myapp/build
-COPY --from=build /myapp/prisma/generated/libquery_engine-debian-openssl-3.0.x.so.node /myapp/build/server
 COPY --from=build /myapp/package.json /myapp/package.json
-COPY --from=build /myapp/prisma /myapp/prisma
+COPY --from=build /myapp/generated /myapp/prisma/generated
 
 ADD . .
 
