@@ -1,17 +1,17 @@
 # This file is moved to the root directory before building the image
 
 # base node image
-FROM node:22-bookworm-slim as base
+FROM node:22-bookworm-slim AS base
 
 # set for base and all layer that inherit from it
-ENV NODE_ENV production
+ENV NODE_ENV=production
 ENV HUSKY=0
 
 # Install openssl for Prisma
 RUN apt-get update && apt-get install -y openssl
 
 # Install all node_modules, including dev dependencies
-FROM base as deps
+FROM base AS deps
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ ADD package.json package-lock.json .npmrc ./
 RUN npm ci --include=dev
 
 # Setup production node_modules
-FROM base as production-deps
+FROM base AS production-deps
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ ADD package.json package-lock.json .npmrc ./
 RUN npm prune --omit=dev
 
 # Build the app
-FROM base as build
+FROM base AS build
 
 ARG COMMIT_SHA
 ENV COMMIT_SHA=$COMMIT_SHA
@@ -41,7 +41,7 @@ WORKDIR /app
 
 COPY --from=deps /app/node_modules /app/node_modules
 
-ADD prisma .
+ADD prisma prisma
 RUN npx prisma generate
 
 ADD . .
@@ -60,7 +60,7 @@ ENV INTERNAL_PORT="8080"
 ENV PORT="8081"
 ENV NODE_ENV="production"
 # For WAL support: https://github.com/prisma/prisma-engines/issues/4675#issuecomment-1914383246
-ENV PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK = "1"
+ENV PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK="1"
 
 WORKDIR /app
 
@@ -68,12 +68,11 @@ WORKDIR /app
 RUN INTERNAL_COMMAND_TOKEN=$(openssl rand -hex 32) && \
   echo "INTERNAL_COMMAND_TOKEN=$INTERNAL_COMMAND_TOKEN" > .env
 
-COPY --from=production-deps /app/node_modules /app/node_modules
+COPY --from=production-deps /app/node_modules /node_modules
 
-COPY --from=build /app/server-build /app/server-build
-COPY --from=build /app/build /app/build
-COPY --from=build /app/package.json /app/package.json
-COPY --from=build /app/generated /app/prisma/generated
+COPY --from=build /app/server-build /server-build
+COPY --from=build /app/build /build
+COPY --from=build /app/package.json /package.json
 
 ADD . .
 
