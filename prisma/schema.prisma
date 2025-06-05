@@ -3,7 +3,7 @@ generator client {
   output          = "generated"
   moduleFormat    = "esm"
   previewFeatures = ["typedSql"]
-  binaryTargets   = ["debian-openssl-3.0.x", "darwin-arm64"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "darwin-arm64"]
 }
 
 datasource db {
