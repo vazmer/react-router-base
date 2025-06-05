@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client"
-  output          = "generated"
+  output          = "../prisma/generated"
   moduleFormat    = "esm"
   previewFeatures = ["typedSql"]
   binaryTargets   = ["debian-openssl-3.0.x", "darwin-arm64"]
